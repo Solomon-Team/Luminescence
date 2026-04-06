@@ -2,59 +2,75 @@
 // Created by Ayydxn on 4/6/2026.
 //
 
-#include "me_ayydxn_luminescence_Ultralight.h"
+#include "JNIUtilities.h"
 
 #include <Ultralight/Defines.h>
 
-JNIEXPORT jstring JNICALL Java_me_ayydxn_luminescence_Ultralight_nulVersionString(JNIEnv* Env, jclass)
+jstring JNICALL ULVersionString_Native(JNIEnv* Env, jclass)
 {
 	return Env->NewStringUTF(UltralightVersionString());
 }
 
-JNIEXPORT jint JNICALL Java_me_ayydxn_luminescence_Ultralight_nulVersionMajor(JNIEnv*, jclass)
+jint JNICALL ULVersionMajor_Native(JNIEnv*, jclass)
 {
-	return UltralightVersionMajor();
+	return static_cast<jint>(UltralightVersionMajor());
 }
 
-JNIEXPORT jint JNICALL Java_me_ayydxn_luminescence_Ultralight_nulVersionMinor(JNIEnv*, jclass)
+jint JNICALL ULVersionMinor_Native(JNIEnv*, jclass)
 {
-	return UltralightVersionMinor();
+	return static_cast<jint>(UltralightVersionMinor());
 }
 
-JNIEXPORT jint JNICALL Java_me_ayydxn_luminescence_Ultralight_nulVersionPatch(JNIEnv*, jclass)
+jint JNICALL ULVersionPatch_Native(JNIEnv*, jclass)
 {
-	return UltralightVersionPatch();
+	return static_cast<jint>(UltralightVersionPatch());
 }
 
-JNIEXPORT jstring JNICALL Java_me_ayydxn_luminescence_Ultralight_nulWebKitVersionString(JNIEnv* env, jclass)
+jstring JNICALL ULWebKitVersionString_Native(JNIEnv* Env, jclass)
 {
-	return env->NewStringUTF(WebKitVersionString());
+	return Env->NewStringUTF(WebKitVersionString());
 }
 
-JNIEXPORT jint JNICALL Java_me_ayydxn_luminescence_Ultralight_nulWebKitVersionMajor(JNIEnv*, jclass)
+jint JNICALL ULWebKitVersionMajor_Native(JNIEnv*, jclass)
 {
-	return WebKitVersionMajor();
+	return static_cast<jint>(WebKitVersionMajor());
 }
 
-JNIEXPORT jint JNICALL Java_me_ayydxn_luminescence_Ultralight_nulWebKitVersionMinor(JNIEnv*, jclass)
+jint JNICALL ULWebKitVersionMinor_Native(JNIEnv*, jclass)
 {
-	return WebKitVersionMinor();
+	return static_cast<jint>(WebKitVersionMinor());
 }
 
-JNIEXPORT jint JNICALL Java_me_ayydxn_luminescence_Ultralight_nulWebKitVersionTiny(JNIEnv*, jclass)
+jint JNICALL ULWebKitVersionTiny_Native(JNIEnv*, jclass)
 {
-	return WebKitVersionTiny();
+	return static_cast<jint>(WebKitVersionTiny());
 }
 
-JNIEXPORT jint JNICALL Java_me_ayydxn_luminescence_Ultralight_nulWebKitVersionMicro(JNIEnv*, jclass)
+jint JNICALL ULWebKitVersionMicro_Native(JNIEnv*, jclass)
 {
-	return WebKitVersionMicro();
+	return static_cast<jint>(WebKitVersionMicro());
 }
 
-JNIEXPORT jint JNICALL Java_me_ayydxn_luminescence_Ultralight_nulWebKitVersionNano(JNIEnv*, jclass)
+jint JNICALL ULWebKitVersionNano_Native(JNIEnv*, jclass)
 {
-	return WebKitVersionNano();
+	return static_cast<jint>(WebKitVersionNano());
 }
 
+static const JNINativeMethod Methods[] =
+{
+	JNI_METHOD("nulVersionString", "()Ljava/lang/String;", ULVersionString_Native),
+	JNI_METHOD("nulVersionMajor", "()I", ULVersionMajor_Native),
+	JNI_METHOD("nulVersionMinor", "()I", ULVersionMinor_Native),
+	JNI_METHOD("nulVersionPatch", "()I", ULVersionPatch_Native),
+	JNI_METHOD("nulWebKitVersionString", "()Ljava/lang/String;", ULWebKitVersionString_Native),
+	JNI_METHOD("nulWebKitVersionMajor", "()I", ULWebKitVersionMajor_Native),
+	JNI_METHOD("nulWebKitVersionMinor", "()I", ULWebKitVersionMinor_Native),
+	JNI_METHOD("nulWebKitVersionTiny", "()I", ULWebKitVersionTiny_Native),
+	JNI_METHOD("nulWebKitVersionMicro", "()I", ULWebKitVersionMicro_Native),
+	JNI_METHOD("nulWebKitVersionNano", "()I", ULWebKitVersionNano_Native)
+};
 
-
+bool Luminescence::RegisterUltralightMethods(JNIEnv* Environment)
+{
+	return Luminescence::RegisterNativeMethods(Environment, "me/ayydxn/luminescence/Ultralight", Methods, sizeof(Methods) / sizeof(Methods[0]));
+}

@@ -1,4 +1,4 @@
-package me.ayydxn.luminescence.core;
+package me.ayydxn.luminescence.internal;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,7 +24,7 @@ public class UltralightNativeLoader
      * Loads the JNI binding library.
      * Search order:
      * 1. System property  -Dultralight.native.path=<dir>
-     * 2. Classpath resource  /natives/<platform>/luminescence_jni.{dll|so|dylib}
+     * 2. Classpath resource  /natives/<platform>/LuminescenceJNI.{dll|so|dylib}
      * 3. java.library.path  (standard JVM lookup)
      */
     public static synchronized void load()
@@ -36,23 +36,25 @@ public class UltralightNativeLoader
         if (override != null)
         {
             System.load(Path.of(override).toAbsolutePath().toString());
+
             isLoaded = true;
+
             return;
         }
 
-        String platform = getCurrentPlatformString();
-        String libName = getNameLibraryFilename();
-        String resource = "/natives/" + platform + "/" + libName;
+        String platform = UltralightNativeLoader.getCurrentPlatformString();
+        String libraryFilename = UltralightNativeLoader.getNameLibraryFilename();
+        String libraryResourceFilepath = "/natives/" + platform + "/" + libraryFilename;
 
-        try (InputStream in = UltralightNativeLoader.class.getResourceAsStream(resource))
+        try (InputStream inputStream = UltralightNativeLoader.class.getResourceAsStream(libraryResourceFilepath))
         {
-            if (in != null)
+            if (inputStream != null)
             {
-                Path tmp = Files.createTempFile("luminescence_jni", libName);
-                tmp.toFile().deleteOnExit();
+                Path tempFile = Files.createTempFile("LuminescenceJNI", libraryFilename);
+                tempFile.toFile().deleteOnExit();
 
-                Files.copy(in, tmp, StandardCopyOption.REPLACE_EXISTING);
-                System.load(tmp.toAbsolutePath().toString());
+                Files.copy(inputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
+                System.load(tempFile.toAbsolutePath().toString());
 
                 isLoaded = true;
 
@@ -65,7 +67,7 @@ public class UltralightNativeLoader
         }
 
         // Fallback — relies on java.library.path
-        System.loadLibrary("luminescence_jni");
+        System.loadLibrary("LuminescenceJNI");
 
         isLoaded = true;
     }
@@ -89,11 +91,11 @@ public class UltralightNativeLoader
     {
         String os = System.getProperty("os.name").toLowerCase();
         if (os.contains("win"))
-            return "luminescence_jni.dll";
+            return "LuminescenceJNI.dll";
 
         if (os.contains("mac"))
-            return "libluminescence_jni.dylib";
+            return "libLuminescenceJNI.dylib";
 
-        return "libluminescence_jni.so";
+        return "libLuminescenceJNI.so";
     }
 }

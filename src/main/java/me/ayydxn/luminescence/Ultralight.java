@@ -1,6 +1,6 @@
 package me.ayydxn.luminescence;
 
-import me.ayydxn.luminescence.core.UltralightNativeLoader;
+import me.ayydxn.luminescence.internal.UltralightNativeLoader;
 import org.jetbrains.annotations.NotNull;
 
 /**

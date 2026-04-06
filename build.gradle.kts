@@ -97,11 +97,11 @@ val compileNative by tasks.registering(Exec::class) {
     // Copy the produced shared lib into resources so it's on the classpath
     doLast {
         val libName = when (platform) {
-            "windows-x64" -> "luminescence_jni.dll"
+            "windows-x64" -> "LuminescenceJNI.dll"
             "macos-x64",
-            "macos-arm64" -> "libluminescence_jni.dylib"
+            "macos-arm64" -> "libLuminescenceJNI.dylib"
 
-            else -> "libluminescence_jni.so"
+            else -> "libLuminescenceJNI.so"
         }
 
         val produced = file("$cmakeBuildDir/Release/$libName")
