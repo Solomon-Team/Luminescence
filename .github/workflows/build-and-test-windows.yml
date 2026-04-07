@@ -42,24 +42,44 @@ jobs:
             gradle-${{ runner.os }}-
 
       # ── 3. Ultralight SDK ────────────────────────────────────────────────────
-      # Users must supply the SDK as a repository secret.
-      # Add it via: Settings → Secrets → Actions → New repository secret
-      #   Name:  ULTRALIGHT_SDK_WINDOWS_X64
-      #   Value: base64-encoded zip of the SDK root
-      #          PowerShell: [Convert]::ToBase64String([IO.File]::ReadAllBytes("sdk.zip"))
-      - name: Restore Ultralight SDK
+      # Fetched from the public SDK releases repository. The gh CLI is
+      # pre-installed on all GitHub-hosted runners and handles redirect/auth
+      # for public repos without needing a token.
+      #
+      # The cache key is pinned to the SDK version tag so the ~300 MB download
+      # only happens once per version — subsequent runs restore from cache in
+      # a few seconds.
+      - name: Cache Ultralight SDK
+        id: cache-sdk
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/ultralight-sdk
+          key: ultralight-sdk-windows-x64-1.4.0
+
+      - name: Download Ultralight SDK
+        if: steps.cache-sdk.outputs.cache-hit != 'true'
         shell: pwsh
-        env:
-          ULTRALIGHT_SDK_B64: ${{ secrets.ULTRALIGHT_SDK_WINDOWS_X64 }}
         run: |
-          $sdkZip = "$env:RUNNER_TEMP\ultralight-sdk.zip"
+          $sdkArchive = "$env:RUNNER_TEMP\ultralight-sdk.7z"
           $sdkDir = "$env:RUNNER_TEMP\ultralight-sdk"
 
-          [IO.File]::WriteAllBytes($sdkZip, [Convert]::FromBase64String($env:ULTRALIGHT_SDK_B64))
-          Expand-Archive -Path $sdkZip -DestinationPath $sdkDir -Force
+          # Pull the windows-x64 zip asset from the SDK releases repo.
+          # --repo targets the external public repo; no token required.
+          gh release download 1.4.0 `
+            --repo Ayydxn/Voxellight-Ultralight-SDKs `
+            --pattern "ultralight-free-sdk-1.4.0-win-x64.7z" `
+            --output $sdkArchive
 
-          # Expose the path to subsequent steps
-          "ULTRALIGHT_SDK_DIR=$sdkDir" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          New-Item -ItemType Directory -Force -Path $sdkDir | Out-Null
+          & "C:\Program Files\7-Zip\7z.exe" x $sdkArchive -o"$sdkDir" -y
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Expose SDK path
+        shell: pwsh
+        run: |
+          "ULTRALIGHT_SDK_DIR=$env:RUNNER_TEMP\ultralight-sdk" |
+            Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       # ── 4. JNI headers ───────────────────────────────────────────────────────
       - name: Generate JNI Headers
@@ -109,12 +129,6 @@ jobs:
             -Pultralight_sdk_location="$env:ULTRALIGHT_SDK_DIR" `
             --no-daemon `
             --continue
-        env:
-          # Make the Ultralight DLLs visible to the Windows loader.
-          # The Gradle test task adds them to PATH, but setting it here too
-          # covers any edge cases where DLL resolution happens before the JVM
-          # reads java.library.path.
-          PATH: "${{ env.ULTRALIGHT_SDK_DIR }}\\bin;${{ env.PATH }}"
 
       # ── 8. Test report ───────────────────────────────────────────────────────
       - name: Publish Test Results
