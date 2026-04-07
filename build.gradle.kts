@@ -1,5 +1,5 @@
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
-import java.util.Properties
+import java.util.*
 
 plugins {
     id("java")
@@ -42,6 +42,10 @@ repositories {
 
 dependencies {
     compileOnly("org.jetbrains:annotations:${rootProject.property("jetbrains_annotations_version").toString()}")
+
+    testImplementation(platform("org.junit:junit-bom:${rootProject.property("junit_version").toString()}"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 val generateJniHeaders by tasks.registering(JavaCompile::class) {
@@ -131,7 +135,18 @@ tasks.register<JavaExec>("runDemoApp") {
     systemProperty("java.library.path", "$nativeOutDir;$ultralightBin")
 
     // Also add to environment PATH for Windows-level dependency resolution
-    environment("PATH", "${environment["PATH"]};$nativeOutDir;$ultralightBin")
+    if (DefaultNativePlatform.getCurrentOperatingSystem().isWindows)
+    {
+        environment("PATH", "${environment["PATH"]};$nativeOutDir;$ultralightBin")
+    }
+    else if (DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX)
+    {
+        environment("DYLD_LIBRARY_PATH", "$nativeOutDir:$ultralightBin")
+    }
+    else if (DefaultNativePlatform.getCurrentOperatingSystem().isLinux)
+    {
+        environment("LD_LIBRARY_PATH", "${environment["LD_LIBRARY_PATH"]}:$nativeOutDir:$ultralightBin")
+    }
 }
 
 tasks.withType<JavaCompile> {
@@ -140,7 +155,31 @@ tasks.withType<JavaCompile> {
 }
 
 tasks.withType<Test> {
+    useJUnitPlatform()
+
+    val nativeOutDir = file("build/cmake-build/Release").absolutePath
+    val ultralightBin = file("$ultralightSdkLocation/bin").absolutePath
+
+    systemProperty("java.library.path", "$nativeOutDir;$ultralightBin")
+
+    if (DefaultNativePlatform.getCurrentOperatingSystem().isWindows)
+    {
+        environment("PATH", "${environment["PATH"]};$nativeOutDir;$ultralightBin")
+    }
+    else if (DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX)
+    {
+        environment("DYLD_LIBRARY_PATH", "$nativeOutDir:$ultralightBin")
+    }
+    else if (DefaultNativePlatform.getCurrentOperatingSystem().isLinux)
+    {
+        environment("LD_LIBRARY_PATH", "${environment["LD_LIBRARY_PATH"]}:$nativeOutDir:$ultralightBin")
+    }
+
     failOnNoDiscoveredTests = false
+
+    testLogging {
+        events("passed", "skipped", "failed")
+    }
 }
 
 

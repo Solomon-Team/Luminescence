@@ -1,28 +1,43 @@
 package me.ayydxn.luminescence.config;
 
-public enum FontHinting
+import me.ayydxn.luminescence.util.NativeEnum;
+
+public enum FontHinting implements NativeEnum
 {
     /**
-     * Lighter hinting algorithm– glyphs are slightly fuzzier but better resemble their original shape.
+     * Lighter hinting algorithm – glyphs are slightly fuzzier but better resemble their original shape.
      * <p>
      * This is achieved by snapping glyphs to the pixel grid only vertically which better preserves inter-glyph spacing.
      */
-    SMOOTH,
+    SMOOTH(0),
 
     /**
-     *Default hinting algorithm– offers a good balance between sharpness and shape at smaller font sizes.
+     *Default hinting algorithm – offers a good balance between sharpness and shape at smaller font sizes.
      */
-    NORMAL,
+    NORMAL(1),
 
     /**
-     * Strongest hinting algorithm– outputs only black/white glyphs.
+     * Strongest hinting algorithm – outputs only black/white glyphs.
      * <p>
      * The result is usually unpleasant if the underlying TTF does not contain hints for this type of rendering.
      */
-    MONOCHROME,
+    MONOCHROME(2),
 
     /**
-     * No hinting is performed– fonts may be blurry at smaller font sizes.
+     * No hinting is performed – fonts may be blurry at smaller font sizes.
      */
-    NONE
+    NONE(3);
+
+    private final int value;
+
+    FontHinting(int value)
+    {
+        this.value = value;
+    }
+
+    @Override
+    public int getValue()
+    {
+        return this.value;
+    }
 }

@@ -14,6 +14,8 @@
 namespace Luminescence
 {
 	bool RegisterUltralightMethods(JNIEnv* Environment);
+	bool RegisterConfigMethods(JNIEnv* Environment);
+	bool RegisterULStringMethods(JNIEnv* Environment);
 
 	/**
 	 * Internal helper to handle the actual registration boilerplate.

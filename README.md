@@ -10,7 +10,7 @@ I'll (hopefully) write proper documentation for this eventually, but basically t
 * [CMake](https://cmake.org/download/) (Version 3.20 or higher)
 * The build tool corresponding to the operating system you're using:
   * Windows: [Visual Studio 2026](https://visualstudio.microsoft.com/downloads/?q=build+tools) (Doesn't have to be the full IDE, just the build tools are required)
-  * MacOS/Linux: [Ninja](https://github.com/ninja-build/ninja/releases)
+  * MacOS/Linux: GNU Make (Usually comes pre-installed on most Linux distributions and MacOS. If not, you can install it using your package manager)
 * JDK 17 or higher (I recommend [Azul Zulu](https://www.azul.com/downloads/#zulu))
 * [Ultralight SDK](https://ultralig.ht/download/). (Make sure to download the correct version for your operating system and architecture)
 

@@ -7,9 +7,10 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
 /**
- * An internal class used by the library to load the necessary library files for interacting with the native C++ code.
+ * A class which handles the loading of the necessary library files for interacting with the native C++ code.
  * <p>
- * Users of the library should <b>not</b> have to interact with this class in any way.
+ * Users of the library <b>need</b> to call this class's {@link UltralightNativeLoader#load()} function before using Ultralight in any way.
+ *
  * @author Ayydxn
  */
 public class UltralightNativeLoader

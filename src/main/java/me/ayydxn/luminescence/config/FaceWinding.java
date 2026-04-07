@@ -1,5 +1,7 @@
 package me.ayydxn.luminescence.config;
 
+import me.ayydxn.luminescence.util.NativeEnum;
+
 /**
  * The winding order for front-facing triangles.
  * <p>
@@ -7,15 +9,28 @@ package me.ayydxn.luminescence.config;
  *
  * @author Ayydxn
  */
-public enum FaceWinding
+public enum FaceWinding implements NativeEnum
 {
     /**
      * Clockwise Winding (Direct3D, etc.)
      */
-    CLOCKWISE,
+    CLOCKWISE(0),
 
     /**
      * Counter-Clockwise Winding (OpenGL, etc.)
      */
-    COUNTER_CLOCKWISE
+    COUNTER_CLOCKWISE(1);
+
+    private final int value;
+
+    FaceWinding(int value)
+    {
+        this.value = value;
+    }
+
+    @Override
+    public int getValue()
+    {
+        return this.value;
+    }
 }

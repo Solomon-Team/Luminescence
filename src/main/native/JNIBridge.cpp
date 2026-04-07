@@ -6,7 +6,7 @@
 
 #include <jni.h>
 
-extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* VirtualMachine, void* Reserved)
+extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* VirtualMachine, void*)
 {
 	JNIEnv* Environment;
 
@@ -15,7 +15,14 @@ extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* VirtualMachine, void* Reser
 		return JNI_ERR;
 	}
 
+	// Register all our methods
 	if (!Luminescence::RegisterUltralightMethods(Environment))
+		return JNI_ERR;
+	
+	if (!Luminescence::RegisterConfigMethods(Environment))
+		return JNI_ERR;
+	
+	if (!Luminescence::RegisterULStringMethods(Environment))
 		return JNI_ERR;
 
 	return JNI_VERSION_10;

@@ -1,6 +1,5 @@
 package me.ayydxn.luminescence;
 
-import me.ayydxn.luminescence.internal.UltralightNativeLoader;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -10,11 +9,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class Ultralight
 {
-    static
-    {
-        UltralightNativeLoader.load();
-    }
-
     private static native String nulVersionString();
     private static native int nulVersionMajor();
     private static native int nulVersionMinor();

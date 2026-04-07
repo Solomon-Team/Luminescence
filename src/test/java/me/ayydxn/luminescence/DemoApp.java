@@ -1,9 +1,14 @@
 package me.ayydxn.luminescence;
 
+import me.ayydxn.luminescence.internal.UltralightNativeLoader;
+
 public class DemoApp
 {
     public static void main(String[] args)
     {
+        // Always load the native libraries first
+        UltralightNativeLoader.load();
+
         /* -- Display Ultralight and WebKit version information --*/
         System.out.printf("Ultralight Version: %s\n", Ultralight.ulVersionString());
         System.out.printf("Ultralight Version Major: %d\n", Ultralight.ulVersionMajor());
