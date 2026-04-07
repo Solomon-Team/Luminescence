@@ -1,4 +1,4 @@
-name: Build and Test Luminescence (Windows)
+name: 🪟 Windows Build and Test
 
 on:
   push:
@@ -6,22 +6,19 @@ on:
   pull_request:
     branches: [ "main" ]
 
-# Cancel in-flight runs for the same branch so a force-push doesn't queue up multiple redundant builds.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build-and-test-windows:
-    name: Build & Test (Windows x64)
+  # ── JOB 1: COMPILE NATIVE BINARIES ───────────────────────────────────────
+  build-windows:
+    name: Build (Windows x64)
     runs-on: windows-2025-vs2026
-
+    outputs:
+      sdk-path: ${{ steps.expose-sdk.outputs.path }}
     steps:
-      # ── 1. Source ────────────────────────────────────────────────────────────
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      # ── 2. Toolchain ─────────────────────────────────────────────────────────
+      - uses: actions/checkout@v4
       - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
@@ -29,26 +26,6 @@ jobs:
           java-version: 17
           cache: gradle
 
-      # actions/setup-java caches the Gradle wrapper too, but we add an explicit
-      # Gradle cache key so the dependency resolution cache also survives.
-      - name: Cache Gradle Dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle.kts', '**/gradle-wrapper.properties', '**/gradle.properties') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
-
-      # ── 3. Ultralight SDK ────────────────────────────────────────────────────
-      # Fetched from the public SDK releases repository. The gh CLI is
-      # pre-installed on all GitHub-hosted runners and handles redirect/auth
-      # for public repos without needing a token.
-      #
-      # The cache key is pinned to the SDK version tag so the ~300 MB download
-      # only happens once per version — subsequent runs restore from cache in
-      # a few seconds.
       - name: Cache Ultralight SDK
         id: cache-sdk
         uses: actions/cache@v4
@@ -61,99 +38,62 @@ jobs:
         shell: pwsh
         run: |
           $sdkArchive = "$env:RUNNER_TEMP\ultralight-sdk.7z"
-          $sdkDir = "$env:RUNNER_TEMP\ultralight-sdk"
-
-          # Pull the windows-x64 zip asset from the SDK releases repo.
-          # --repo targets the external public repo; no token required.
-          gh release download 1.4.0 `
-            --repo Ayydxn/Voxellight-Ultralight-SDKs `
-            --pattern "ultralight-free-sdk-1.4.0-win-x64.7z" `
-            --output $sdkArchive
-
-          New-Item -ItemType Directory -Force -Path $sdkDir | Out-Null
-          & "C:\Program Files\7-Zip\7z.exe" x $sdkArchive -o"$sdkDir" -y
+          gh release download 1.4.0 --repo Ayydxn/Voxellight-Ultralight-SDKs --pattern "ultralight-free-sdk-1.4.0-win-x64.7z" --output $sdkArchive
+          & "C:\Program Files\7-Zip\7z.exe" x $sdkArchive -o"$env:RUNNER_TEMP\ultralight-sdk" -y
         env:
           GH_TOKEN: ${{ github.token }}
 
-      - name: Expose SDK path
+      - name: Build Native JNI
         shell: pwsh
         run: |
-          "ULTRALIGHT_SDK_DIR=$env:RUNNER_TEMP\ultralight-sdk" |
-            Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
-      # ── 4. JNI headers ───────────────────────────────────────────────────────
-      - name: Generate JNI Headers
-        shell: pwsh
-        run: ./gradlew generateJniHeaders --no-daemon
-
-      # ── 5. CMake configure ───────────────────────────────────────────────────
-      # windows-2025-vs2026 ships Visual Studio 2026, so "Visual Studio 18 2026" matches the generator string already in build.gradle.kts exactly.
-      - name: Configure CMake
-        shell: pwsh
-        run: |
-          $buildDir   = "build/cmake-build"
-          $headerDir  = "build/jni-headers"
-
-          New-Item -ItemType Directory -Force -Path $buildDir | Out-Null
-
-          cmake `
-            -S src/main/native `
-            -B $buildDir `
-            -G "Visual Studio 18 2026" `
-            -A x64 `
-            -DJNI_HEADER_DIR="$(Resolve-Path $headerDir)" `
-            -DULTRALIGHT_SDK="$env:ULTRALIGHT_SDK_DIR" `
-            -DPLATFORM="windows-x64" `
-            -DCMAKE_BUILD_TYPE=Release
-
-      # ── 6. CMake build ───────────────────────────────────────────────────────
-      - name: Build
-        shell: pwsh
-        run: |
+          ./gradlew generateJniHeaders --no-daemon
+          cmake -S src/main/native -B build/cmake-build -G "Visual Studio 18 2026" -A x64 -DJNI_HEADER_DIR="$(Resolve-Path build/jni-headers)" -DULTRALIGHT_SDK="$env:RUNNER_TEMP\ultralight-sdk" -DPLATFORM="windows-x64" -DCMAKE_BUILD_TYPE=Release
           cmake --build build/cmake-build --config Release --parallel
 
-          # Copy the DLL into the resources tree so the classpath loader can
-          # find it, mirroring what the Gradle compileNative doLast block does.
-          $dest = "build/resources/main/natives/windows-x64"
-          New-Item -ItemType Directory -Force -Path $dest | Out-Null
-          Copy-Item "build/cmake-build/Release/LuminescenceJNI.dll" -Destination $dest
-
-      # ── 7. Unit tests ────────────────────────────────────────────────────────
-      # The Gradle test task already sets java.library.path and PATH using the
-      # ultralight_sdk_location property. We pass it here so it resolves to the
-      # extracted SDK rather than the local.properties value.
-      - name: Run Tests
-        shell: pwsh
-        run: |
-          ./gradlew test `
-            -Pultralight_sdk_location="$env:ULTRALIGHT_SDK_DIR" `
-            --no-daemon `
-            --continue
-
-      # ── 8. Test report ───────────────────────────────────────────────────────
-      - name: Publish Test Results
-        uses: mikepenz/action-junit-report@v4
-        if: always()    # run even when tests fail so the report is always visible
-        with:
-          report_paths: build/test-results/test/TEST-*.xml
-          detailed_summary: true
-          include_passed: true
-
-      # ── 9. Artifacts ─────────────────────────────────────────────────────────
-      - name: Upload LuminescenceJNI.dll
+      - name: Upload Binary for Testing
         uses: actions/upload-artifact@v4
-        if: success()
         with:
           name: LuminescenceJNI-windows-x64
           path: build/cmake-build/Release/LuminescenceJNI.dll
-          retention-days: 30
+          retention-days: 1
 
-      - name: Upload Test Reports On Failure
-        uses: actions/upload-artifact@v4
-        if: failure()
+  # ── JOB 2: RUN UNIT TESTS ────────────────────────────────────────────────
+  test-windows:
+    name: Unit Tests (Windows x64)
+    needs: build-windows # This creates the visual separation and dependency
+    runs-on: windows-2025-vs2026
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
         with:
-          name: test-reports-windows
-          path: |
-            build/reports/tests/
-            build/test-results/
-          retention-days: 7
+          distribution: zulu
+          java-version: 17
+          cache: gradle
+
+      # We need the SDK again for the DLLs (Ultralight.dll, AppCore.dll, etc.)
+      - name: Restore Ultralight SDK
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/ultralight-sdk
+          key: ultralight-sdk-windows-x64-1.4.0
+
+      - name: Download Built JNI DLL
+        uses: actions/download-artifact@v4
+        with:
+          name: LuminescenceJNI-windows-x64
+          path: build/resources/main/natives/windows-x64
+
+      - name: Run Gradle Tests
+        shell: pwsh
+        run: |
+          ./gradlew test `
+            -Pultralight_sdk_location="$env:RUNNER_TEMP\ultralight-sdk" `
+            --no-daemon `
+            --continue
+
+      - name: Publish Test Results
+        uses: mikepenz/action-junit-report@v4
+        if: always()
+        with:
+          report_paths: build/test-results/test/TEST-*.xml

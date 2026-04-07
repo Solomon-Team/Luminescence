@@ -1,22 +1,25 @@
 package me.ayydxn.luminescence.util;
 
+import me.ayydxn.luminescence.BaseLuminescenceTest;
+import me.ayydxn.luminescence.internal.UltralightNativeLoader;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ULStringTest
+public class ULStringTest extends BaseLuminescenceTest
 {
     @Test
     @DisplayName("Verify Basic Creation and Data Retrieval")
     void testBasicCreation()
     {
         String input = "Hello Luminescence!";
-        try (ULString ulStr = ULString.create(input))
+        try (ULString ulString = ULString.create(input))
         {
-            assertEquals(input, ulStr.getData(), "Native string data should match Java input");
-            assertFalse(ulStr.isEmpty());
-            assertEquals(input.length(), ulStr.getLength());
+            assertEquals(input, ulString.getData(), "Native string data should match Java input");
+            assertFalse(ulString.isEmpty());
+            assertEquals(input.length(), ulString.getLength());
         }
     }
 
@@ -24,11 +27,11 @@ public class ULStringTest
     @DisplayName("Verify Empty String Behavior")
     void testEmptyString()
     {
-        try (ULString ulStr = ULString.create(""))
+        try (ULString ulString = ULString.create(""))
         {
-            assertTrue(ulStr.isEmpty());
-            assertEquals(0, ulStr.getLength());
-            assertEquals("", ulStr.getData());
+            assertTrue(ulString.isEmpty());
+            assertEquals(0, ulString.getLength());
+            assertEquals("", ulString.getData());
         }
     }
 
@@ -36,14 +39,13 @@ public class ULStringTest
     @DisplayName("Verify Assignment Logic (Copying Contents)")
     void testAssignment()
     {
-        try (ULString base = ULString.create("Initial"); ULString updated = ULString.create("New Content"))
+        try (ULString baseString = ULString.create("Initial"); ULString updatedString = ULString.create("New Content"))
         {
+            baseString.assignString(updatedString);
+            assertEquals("New Content", baseString.getData(), "Base string should now contain updated content");
 
-            base.assignString(updated);
-            assertEquals("New Content", base.getData(), "Base string should now contain updated content");
-
-            base.assignCString("Direct Assignment");
-            assertEquals("Direct Assignment", base.getData());
+            baseString.assignCString("Direct Assignment");
+            assertEquals("Direct Assignment", baseString.getData());
         }
     }
 
@@ -51,12 +53,12 @@ public class ULStringTest
     @DisplayName("Verify createFromCopy Creates A Distinct Object")
     void testCopyConstructor()
     {
-        try (ULString original = ULString.create("Original"))
+        try (ULString originalString = ULString.create("Original"))
         {
-            try (ULString copy = ULString.createFromCopy(original))
+            try (ULString copyString = ULString.createFromCopy(originalString))
             {
-                assertEquals(original.getData(), copy.getData());
-                assertNotEquals(original.getHandle(), copy.getHandle(), "Copy should have a unique native handle");
+                assertEquals(originalString.getData(), copyString.getData());
+                assertNotEquals(originalString.getHandle(), copyString.getHandle(), "Copy should have a unique native handle");
             }
         }
     }
@@ -65,35 +67,35 @@ public class ULStringTest
     @DisplayName("Verify Handle Nullification After Close")
     void testCloseSafety()
     {
-        ULString ulStr = ULString.create("Temporary");
-        long capturedHandle = ulStr.getHandle();
+        ULString ulString = ULString.create("Temporary");
+        long capturedHandle = ulString.getHandle();
         assertNotEquals(0, capturedHandle);
 
-        ulStr.close();
-        assertEquals(0, ulStr.getHandle(), "Handle must be zeroed out after close to prevent use-after-free");
+        ulString.close();
+        assertEquals(0, ulString.getHandle(), "Handle must be zeroed out after close to prevent use-after-free");
 
-        // Ensure double-close doesn't crash (should be handled by your nulDestroyString check)
-        assertDoesNotThrow(ulStr::close);
+        // Ensure double-close doesn't crash
+        assertDoesNotThrow(ulString::close);
     }
 
     @Test
     @DisplayName("Verify Unicode Round-Trip (UTF-16 Path)")
     void testUnicodeRoundTrip()
     {
-        // Exercises the GetStringChars / ulCreateStringUTF16 path in jni_utils.hpp
-        // rather than the ASCII fast path
         String input = "こんにちは 🌐 مرحبا";
-        try (ULString ulStr = ULString.create(input))
+
+        try (ULString ulString = ULString.createUTF16(input))
         {
-            assertEquals(input, ulStr.getData());
-            assertEquals(input.length(), ulStr.getLength());
+            assertEquals(input, ulString.getData());
+            assertEquals(input.length(), ulString.getLength());
         }
     }
 
     @Test
-    @DisplayName("Verify Null Input Is Rejected Cleanly")
+    @DisplayName("Verify Null Input Is Rejected Cleanly With IllegalArgumentException")
+    @SuppressWarnings("resource")
     void testNullRejection()
     {
-        assertThrows(NullPointerException.class, () -> ULString.create(null));
+        assertThrows(IllegalArgumentException.class, () -> ULString.create(null));
     }
 }

@@ -6,6 +6,13 @@
 
 #include <Ultralight/CAPI/CAPI_String.h>
 
+// (Ayydxn) Thank you, C++ committee for deprecating this stuff and then proceeding to not introduce a modern, cross-platform replacement :D
+#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
+#include <codecvt>
+#include <exception>
+#include <locale>
+#include <string>
+
 /*
  * Class:     me_ayydxn_luminescence_util_ULString_NativeMethods
  * Method:    nulCreateString
@@ -87,15 +94,27 @@ jstring JNICALL ULStringGetData_Native(JNIEnv* Environment, jclass, jlong String
 {
     const auto String = reinterpret_cast<ULString>(StringHandle);
     if (!String)
-        return nullptr; 
+        return nullptr;
 
-    const char* StringData = ulStringGetData(String);
-    
-    // ulStringGetData could return null if the string is uninitialized
-    if (!StringData)
+    const char* Data = ulStringGetData(String);
+    if (!Data || strlen(Data) == 0)
         return Environment->NewStringUTF("");
-    
-    return Environment->NewStringUTF(StringData);
+
+    try
+    {
+        // Convert Standard UTF-8 (Ultralight) to UTF-16 (Java)
+        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> Convert;
+        std::u16string UTF16String = Convert.from_bytes(Data);
+
+        // Pass the UTF-16 buffer directly to Java
+        // NewString takes a jchar* (16-bit) and the count of units
+        return Environment->NewString(reinterpret_cast<const jchar*>(UTF16String.data()), static_cast<jsize>(UTF16String.length()));
+    } 
+    catch (const std::exception&)
+    {
+        // Fallback for conversion errors (though rare with valid UTF-8)
+        return Environment->NewStringUTF(Data);
+    }
 }
 
 /*
@@ -127,7 +146,7 @@ jboolean JNICALL ULStringIsEmpty_Native(JNIEnv *, jclass, jlong StringHandle)
  * Method:    nulStringAssignString
  * Signature: (JJ)V
  */
-void JNICALL ULStringAssignString_Native(JNIEnv* Environment, jclass, jlong StringHandle, jlong StringToAssign)
+void JNICALL ULStringAssignString_Native(JNIEnv*, jclass, jlong StringHandle, jlong StringToAssign)
 {
     const auto String = reinterpret_cast<ULString>(StringHandle);
     const auto NewString = reinterpret_cast<ULString>(StringToAssign);

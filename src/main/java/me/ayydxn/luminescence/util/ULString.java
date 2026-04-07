@@ -25,6 +25,9 @@ public class ULString implements AutoCloseable
 
     public static ULString create(String string)
     {
+        if (string == null)
+            throw new IllegalArgumentException("Cannot create a ULString with a null Java string!");
+
         return new ULString(NativeMethods.nulCreateString(string));
     }
 
@@ -60,6 +63,11 @@ public class ULString implements AutoCloseable
     }
 
     public long getLength()
+    {
+        return this.getData().length();
+    }
+
+    public long getByteLength()
     {
         return NativeMethods.nulStringGetLength(this.handle);
     }

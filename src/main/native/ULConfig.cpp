@@ -272,6 +272,6 @@ static constexpr JNINativeMethod ConfigMethods[] =
 
 bool Luminescence::RegisterConfigMethods(JNIEnv* Environment)
 {
-    return RegisterNativeMethods(Environment, "me/ayydxn/luminescence/config/Config$NativeMethods",
+    return RegisterNativeMethods(Environment, "me/ayydxn/luminescence/config/ULConfig$NativeMethods",
                                  ConfigMethods, sizeof(ConfigMethods) / sizeof(ConfigMethods[0]));
 }

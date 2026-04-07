@@ -1,13 +1,15 @@
 package me.ayydxn.luminescence.config;
 
+import me.ayydxn.luminescence.BaseLuminescenceTest;
 import me.ayydxn.luminescence.internal.UltralightNativeLoader;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class ConfigTest
+public class ULConfigTest extends BaseLuminescenceTest
 {
     @BeforeAll
     static void setup()
@@ -16,11 +18,12 @@ public class ConfigTest
     }
 
     @Test
-    void configInitializesWithValidNativePointer()
+    @DisplayName("Initializes with Valid Native Pointer")
+    void testInitialization()
     {
         assertDoesNotThrow(() ->
         {
-            try (Config config = new Config())
+            try (ULConfig config = new ULConfig())
             {
                 // If we reach here, the native pointer is valid.
                 config.setMemoryCacheSize(1024 * 1024);
@@ -32,11 +35,12 @@ public class ConfigTest
     }
 
     @Test
-    void createAndDestroyMultipleConfigsWithoutHeapCorruption()
+    @DisplayName("Create and Destroy Multiple Configs Without Heap Corruption")
+    void testHeapCorruption()
     {
         for (int i = 0; i < 100; i++)
         {
-            try (Config config = new Config())
+            try (ULConfig config = new ULConfig())
             {
                 config.setMemoryCacheSize(1024);
             }

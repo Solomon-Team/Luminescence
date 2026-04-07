@@ -1,5 +1,6 @@
-package me.ayydxn.luminescence;
+package me.ayydxn.luminescence.demo;
 
+import me.ayydxn.luminescence.Ultralight;
 import me.ayydxn.luminescence.internal.UltralightNativeLoader;
 
 public class DemoApp
