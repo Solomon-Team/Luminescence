@@ -2,7 +2,7 @@
 // Created by Ayydxn on 4/6/2026.
 //
 
-#include "JNIUtilities.h"
+#include "Core/JNIUtilities.h"
 
 #include <jni.h>
 
@@ -22,8 +22,14 @@ extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* VirtualMachine, void*)
 	if (!Luminescence::RegisterConfigMethods(Environment))
 		return JNI_ERR;
 	
-	if (!Luminescence::RegisterULStringMethods(Environment))
+	if (!Luminescence::RegisterStringMethods(Environment))
 		return JNI_ERR;
-
+	
+	if (!Luminescence::RegisterPlatformMethods(Environment))
+		return JNI_ERR;
+	
+	if (!Luminescence::RegisterBufferMethods(Environment))
+		return JNI_ERR;
+	
 	return JNI_VERSION_10;
 }

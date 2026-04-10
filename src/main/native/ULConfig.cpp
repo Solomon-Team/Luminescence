@@ -2,7 +2,7 @@
 // Created by Ayydxn on 4/6/2026.
 //
 
-#include "JNIUtilities.h"
+#include "Core/JNIUtilities.h"
 
 #include <Ultralight/CAPI/CAPI_Config.h>
 
@@ -272,6 +272,5 @@ static constexpr JNINativeMethod ConfigMethods[] =
 
 bool Luminescence::RegisterConfigMethods(JNIEnv* Environment)
 {
-    return RegisterNativeMethods(Environment, "me/ayydxn/luminescence/config/ULConfig$NativeMethods",
-                                 ConfigMethods, sizeof(ConfigMethods) / sizeof(ConfigMethods[0]));
+    return RegisterNativeMethods(Environment, "me/ayydxn/luminescence/config/ULConfig$NativeMethods", JNI_METHODS_AND_COUNT(ConfigMethods));
 }

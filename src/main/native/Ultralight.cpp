@@ -2,7 +2,7 @@
 // Created by Ayydxn on 4/6/2026.
 //
 
-#include "JNIUtilities.h"
+#include "Core/JNIUtilities.h"
 
 #include <Ultralight/Defines.h>
 
@@ -122,6 +122,5 @@ static const JNINativeMethod UltralightMethods[] =
 
 bool Luminescence::RegisterUltralightMethods(JNIEnv* Environment)
 {
-	return RegisterNativeMethods(Environment, "me/ayydxn/luminescence/Ultralight", UltralightMethods,
-		sizeof(UltralightMethods) / sizeof(UltralightMethods[0]));
+	return RegisterNativeMethods(Environment, "me/ayydxn/luminescence/Ultralight", JNI_METHODS_AND_COUNT(UltralightMethods));
 }

@@ -11,12 +11,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class ULConfigTest extends BaseLuminescenceTest
 {
-    @BeforeAll
-    static void setup()
-    {
-        UltralightNativeLoader.load();
-    }
-
     @Test
     @DisplayName("Initializes with Valid Native Pointer")
     void testInitialization()

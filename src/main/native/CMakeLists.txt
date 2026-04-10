@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(LuminescenceJNI)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # ── Compiler hardening & optimisation flags ──────────────────────────────────
@@ -32,10 +32,16 @@ add_library(LuminescenceJNI SHARED ${SOURCES}
         JNIBridge.cpp)
 
 target_include_directories(LuminescenceJNI PRIVATE
+        ${CMAKE_SOURCE_DIR}
         ${JNI_INCLUDE_DIRS}
         ${JNI_HEADER_DIR}
         ${UL_INCLUDE}
         include   # project-local helpers
+)
+
+# (Ayydxn) Thank you, C++ committee for deprecating this stuff and then proceeding to not introduce a modern, cross-platform replacement :D
+target_compile_definitions(LuminescenceJNI PRIVATE
+        _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 )
 
 # Link against Ultralight (user-provided)

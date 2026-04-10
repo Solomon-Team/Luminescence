@@ -43,6 +43,12 @@ bin/
 ### Mac OS ###
 .DS_Store
 
+# Java
+hs_err_*.log
+replay_*.log
+*.hprof
+*.jfr
+
 ### Files ###
 *.dll
 *.dylib

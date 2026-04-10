@@ -30,4 +30,26 @@ import org.jetbrains.annotations.ApiStatus;
 public interface NativeEnum
 {
     int getValue();
+
+    /**
+     * Resolves a native integer value to its corresponding Java Enum constant.
+     *
+     * @param <E>          The type of the Enum implementing NativeEnum.
+     * @param enumClass    The Class object of the enum to search.
+     * @param nativeValue  The integer value received from the C++ layer.
+     * @param defaultValue The fallback constant if the native value is unrecognized.
+     * @return The matched Enum constant, or the defaultValue if no match is found.
+     *
+     * @apiNote This is a general-purpose resolver intended for use by JNI trampolines when implementing callbacks.
+     */
+    static <E extends Enum<E> & NativeEnum> E resolve(Class<E> enumClass, int nativeValue, E defaultValue)
+    {
+        for (E enumConstant : enumClass.getEnumConstants())
+        {
+            if (enumConstant.getValue() == nativeValue)
+                return enumConstant;
+        }
+
+        return defaultValue;
+    }
 }

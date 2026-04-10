@@ -2,12 +2,10 @@
 // Created by Ayydxn on 4/6/2026.
 //
 
-#include "JNIUtilities.h"
+#include "Core/JNIUtilities.h"
 
 #include <Ultralight/CAPI/CAPI_String.h>
 
-// (Ayydxn) Thank you, C++ committee for deprecating this stuff and then proceeding to not introduce a modern, cross-platform replacement :D
-#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 #include <codecvt>
 #include <exception>
 #include <locale>
@@ -170,7 +168,7 @@ void JNICALL ULAssignCString_Native(JNIEnv* Environment, jclass, jlong StringHan
     Environment->ReleaseStringUTFChars(String, StringCStr);
 }
 
-static const JNINativeMethod ULStringMethods[] =
+static const JNINativeMethod StringMethods[] =
 {
     JNI_METHOD("nulCreateString", "(Ljava/lang/String;)J", ULCreateString_Native),
     JNI_METHOD("nulCreateStringUTF8", "(Ljava/lang/String;)J", ULCreateStringUTF8_Native),
@@ -184,8 +182,7 @@ static const JNINativeMethod ULStringMethods[] =
     JNI_METHOD("nulAssignCString", "(JLjava/lang/String;)V", ULAssignCString_Native),
 };
 
-bool Luminescence::RegisterULStringMethods(JNIEnv* Environment)
+bool Luminescence::RegisterStringMethods(JNIEnv* Environment)
 {
-    return RegisterNativeMethods(Environment, "me/ayydxn/luminescence/util/ULString$NativeMethods", ULStringMethods,
-        sizeof(ULStringMethods) / sizeof(ULStringMethods[0]));
+    return RegisterNativeMethods(Environment, "me/ayydxn/luminescence/util/ULString$NativeMethods", JNI_METHODS_AND_COUNT(StringMethods));
 }

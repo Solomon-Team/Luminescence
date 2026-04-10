@@ -1,0 +1,74 @@
+//
+// Created by Ayydxn on 4/6/2026.
+//
+
+#pragma once
+
+#include <jni.h>
+#include <Ultralight/CAPI/CAPI_String.h>
+
+#include <stdexcept>
+
+// Utility macro for cleaner method tables.
+// 
+// Example Usage: JNI_METHOD("javaName", "(Sig)V", native_func_ptr)
+#define JNI_METHOD(Name, MethodSignature, ImplFunctionPointer) { (char*) (Name), (char*) (MethodSignature), (void*) (ImplFunctionPointer) }
+
+// Utility macro for quickly providing your methods array and its size to RegisterNativeMethods
+// 
+// Example Usage: return RegisterNativeMethods(Environment, "me/ayydxn/luminescence/util/ULBuffer$NativeMethods", JNI_METHODS_AND_COUNT(BufferMethods));
+#define JNI_METHODS_AND_COUNT(Methods) Methods, std::size(Methods)
+
+namespace Luminescence
+{
+    bool RegisterUltralightMethods(JNIEnv* Environment);
+    bool RegisterConfigMethods(JNIEnv* Environment);
+    bool RegisterStringMethods(JNIEnv* Environment);
+    bool RegisterPlatformMethods(JNIEnv* Environment);
+    bool RegisterBufferMethods(JNIEnv* Environment);
+
+    inline bool RegisterNativeMethods(JNIEnv* Environment, const char* ClassName, const JNINativeMethod* Methods, int MethodsCount)
+    {
+        jclass Class = Environment->FindClass(ClassName);
+        if (Class == nullptr)
+            return false;
+
+        return Environment->RegisterNatives(Class, Methods, MethodsCount) == 0;
+    }
+
+    inline jstring ULStringToJavaString(JNIEnv* Environment, ULString ULString)
+    {
+        if (!ULString)
+            return Environment->NewStringUTF("");
+
+        const char* Data = ulStringGetData(ULString);
+        const uint32_t Len = static_cast<uint32_t>(ulStringGetLength(ULString));
+        return Environment->NewString(reinterpret_cast<const jchar*>(Data), static_cast<jsize>(Len));
+    }
+    
+    inline ULString JavaStringToULString(JNIEnv* Environment, jstring JavaString)
+    {
+        if (!JavaString)
+            return ulCreateString("");
+
+        const jchar* Chars = Environment->GetStringChars(JavaString, nullptr);
+        const jsize Length = Environment->GetStringLength(JavaString);
+        const ULString Result = ulCreateStringUTF16((ULChar16*) Chars, static_cast<size_t>(Length));
+
+        Environment->ReleaseStringChars(JavaString, Chars);
+
+        return Result;
+    }
+
+    // Throw a C++ exception if a Java exception is pending, clearing it first so the JNI environment is left clean for the caller to handle.
+    inline void CheckException(JNIEnv* Env)
+    {
+        if (Env->ExceptionCheck())
+        {
+            Env->ExceptionDescribe();
+            Env->ExceptionClear();
+
+            throw std::runtime_error("Java exception during JNI callback");
+        }
+    }
+}
