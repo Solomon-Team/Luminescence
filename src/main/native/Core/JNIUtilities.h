@@ -26,6 +26,8 @@ namespace Luminescence
     bool RegisterStringMethods(JNIEnv* Environment);
     bool RegisterPlatformMethods(JNIEnv* Environment);
     bool RegisterBufferMethods(JNIEnv* Environment);
+    bool RegisterRendererMethods(JNIEnv* Environment);
+    bool RegisterGamepadEventMethods(JNIEnv* Environment);
 
     inline bool RegisterNativeMethods(JNIEnv* Environment, const char* ClassName, const JNINativeMethod* Methods, int MethodsCount)
     {
@@ -42,8 +44,7 @@ namespace Luminescence
             return Environment->NewStringUTF("");
 
         const char* Data = ulStringGetData(ULString);
-        const uint32_t Len = static_cast<uint32_t>(ulStringGetLength(ULString));
-        return Environment->NewString(reinterpret_cast<const jchar*>(Data), static_cast<jsize>(Len));
+        return Environment->NewStringUTF(Data);
     }
     
     inline ULString JavaStringToULString(JNIEnv* Environment, jstring JavaString)

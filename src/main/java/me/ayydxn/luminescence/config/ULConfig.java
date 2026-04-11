@@ -1,6 +1,7 @@
 package me.ayydxn.luminescence.config;
 
 import me.ayydxn.luminescence.util.ULString;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.function.BiConsumer;
 
@@ -284,6 +285,22 @@ public class ULConfig implements AutoCloseable
     }
 
     /**
+     * Sets the quality of effects (blurs, CSS filters, SVG filters, etc.) to use when rendering.
+     *
+     * @param effectQuality The quality of effects to use when rendering.
+     */
+    public void setEffectQuality(EffectQuality effectQuality)
+    {
+        NativeMethods.nulConfigSetEffectQuality(this.handle, effectQuality.ordinal());
+    }
+
+    @ApiStatus.Internal
+    public long getHandle()
+    {
+        return this.handle;
+    }
+
+    /**
      * Helper method to safely pass a Java String to a native function as a {@code ULString}.
      * <p>
      * This method handles the creation of a temporary native string, executes the
@@ -342,5 +359,7 @@ public class ULConfig implements AutoCloseable
         private static native void nulConfigSetMaxUpdateTime(long configHandle, double maxUpdateTime);
 
         private static native void nulConfigSetBitmapAlignment(long configHandle, int alignment);
+
+        private static native void nulConfigSetEffectQuality(long configHandle, int effectQualityOrdinal);
     }
 }

@@ -31,5 +31,11 @@ extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* VirtualMachine, void*)
 	if (!Luminescence::RegisterBufferMethods(Environment))
 		return JNI_ERR;
 	
+	if (!Luminescence::RegisterRendererMethods(Environment))
+		return JNI_ERR;
+	
+	if (!Luminescence::RegisterGamepadEventMethods(Environment))
+		return JNI_ERR;
+	
 	return JNI_VERSION_10;
 }

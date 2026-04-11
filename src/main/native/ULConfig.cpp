@@ -5,6 +5,7 @@
 #include "Core/JNIUtilities.h"
 
 #include <Ultralight/CAPI/CAPI_Config.h>
+#include <Ultralight/platform/Config.h>
 
 /*
  * Class:     me_ayydxn_luminescence_config_Config_NativeMethods
@@ -246,6 +247,19 @@ void JNICALL ULConfigSetBitmapAlignment_Native(JNIEnv*, jclass, jlong ConfigHand
     ulConfigSetBitmapAlignment(Config, static_cast<unsigned int>(BitmapAlignment));
 }
 
+/*
+ * Class:     me_ayydxn_luminescence_config_ULConfig_NativeMethods
+ * Method:    nulConfigSetEffectQuality
+ * Signature: (JI)V
+ */
+JNIEXPORT void JNICALL ULConfigSetEffectQuality_Native(JNIEnv*, jclass, jlong ConfigHandle, jint EffectQualityOrdinal)
+{
+    const auto Config = reinterpret_cast<ULConfig>(ConfigHandle);
+    const auto CppConfig = reinterpret_cast<ultralight::Config*>(Config);
+    
+    CppConfig->effect_quality = static_cast<ultralight::EffectQuality>(EffectQualityOrdinal);
+}
+
 static constexpr JNINativeMethod ConfigMethods[] =
 {
     JNI_METHOD("nulCreateConfig", "()J", ULCreateConfig_Native),
@@ -267,7 +281,8 @@ static constexpr JNINativeMethod ConfigMethods[] =
     JNI_METHOD("nulConfigSetMinSmallHeapSize", "(JI)V", ULConfigSetMinSmallHeapSize_Native),
     JNI_METHOD("nulConfigSetNumRendererThreads", "(JI)V", ULConfigSetNumRendererThreads_Native),
     JNI_METHOD("nulConfigSetMaxUpdateTime", "(JD)V", ULConfigSetMaxUpdateTime_Native),
-    JNI_METHOD("nulConfigSetBitmapAlignment", "(JI)V", ULConfigSetBitmapAlignment_Native)
+    JNI_METHOD("nulConfigSetBitmapAlignment", "(JI)V", ULConfigSetBitmapAlignment_Native),
+    JNI_METHOD("nulConfigSetEffectQuality", "(JI)V", ULConfigSetEffectQuality_Native)
 };
 
 bool Luminescence::RegisterConfigMethods(JNIEnv* Environment)

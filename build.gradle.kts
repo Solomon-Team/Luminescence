@@ -43,6 +43,8 @@ repositories {
 dependencies {
     compileOnly("org.jetbrains:annotations:${rootProject.property("jetbrains_annotations_version").toString()}")
 
+    implementation("com.ibm.icu:icu4j:${rootProject.property("icu4j_version").toString()}")
+
     testImplementation(platform("org.junit:junit-bom:${rootProject.property("junit_version").toString()}"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -126,7 +128,7 @@ tasks.register<JavaExec>("runDemoApp") {
     dependsOn("cmakeConfigure")
 
     classpath = sourceSets["test"].runtimeClasspath
-    mainClass.set("me.ayydxn.luminescence.DemoApp")
+    mainClass.set("me.ayydxn.luminescence.demo.DemoApp")
 
     // Automatically set the PATH so Windows finds luminescence_jni.dll and Ultralight.dll
     val nativeOutDir = file("build/cmake-build/Release").absolutePath

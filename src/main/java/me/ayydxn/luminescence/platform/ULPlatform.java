@@ -53,7 +53,7 @@ public class ULPlatform
 
         private static native void nulPlatformSetFontLoader(ULFontLoader fontLoader);
 
-        /** ADDED BY LUMINESCENCE: Used to primarily by the C++ to clean up any callback adapters we have created. */
+        /** ADDED BY LUMINESCENCE: Used to primarily by the C++ side to clean up any callback adapters we have created. */
         private static native void nulPlatformShutdown();
     }
 }

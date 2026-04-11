@@ -43,7 +43,7 @@ namespace Luminescence
             return;
         
         const CScopedLocalRef LogLevelEnum(Environment, Environment->FindClass("me/ayydxn/luminescence/platform/ULLogger$Level"));
-        const jmethodID FromNativeMethodID = Environment->GetStaticMethodID(LogLevelEnum, "fromNativeValue", "(I)me/ayydxn/luminescence/platform/ULLogger$Level;");
+        const jmethodID FromNativeMethodID = Environment->GetStaticMethodID(LogLevelEnum, "fromNativeValue", "(I)Lme/ayydxn/luminescence/platform/ULLogger$Level;");
         const CScopedLocalRef LogLevelObject(Environment, Environment->CallStaticObjectMethod(LogLevelEnum, FromNativeMethodID, static_cast<jint>(LogLevel)));
 
         const CScopedLocalRef MessageString(Environment, ULStringToJavaString(Environment, Message));

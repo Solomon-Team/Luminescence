@@ -1,5 +1,7 @@
 package me.ayydxn.luminescence.events;
 
+import me.ayydxn.luminescence.renderer.ULRenderer;
+
 public enum GamepadEventType
 {
     // TODO: (Ayydxn) Reference the equivalent Java methods when they get added
@@ -7,7 +9,7 @@ public enum GamepadEventType
      * This event type should be fired when a gamepad is connected.
      * <p>
      * <b>NOTE:</b> You will need to previously declare the gamepad, its index, and details about its axis and button layout via
-     * Renderer::SetGamepadDetails prior to calling Renderer::FireGamepadEvent.
+     * {@link ULRenderer#setGamepadDetails(int, String, int, int)} prior to calling Renderer::FireGamepadEvent.
      */
     CONNECTED,
 
