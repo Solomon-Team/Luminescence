@@ -252,7 +252,7 @@ void JNICALL ULConfigSetBitmapAlignment_Native(JNIEnv*, jclass, jlong ConfigHand
  * Method:    nulConfigSetEffectQuality
  * Signature: (JI)V
  */
-JNIEXPORT void JNICALL ULConfigSetEffectQuality_Native(JNIEnv*, jclass, jlong ConfigHandle, jint EffectQualityOrdinal)
+void JNICALL ULConfigSetEffectQuality_Native(JNIEnv*, jclass, jlong ConfigHandle, jint EffectQualityOrdinal)
 {
     const auto Config = reinterpret_cast<ULConfig>(ConfigHandle);
     const auto CppConfig = reinterpret_cast<ultralight::Config*>(Config);

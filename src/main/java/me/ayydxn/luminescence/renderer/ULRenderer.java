@@ -2,6 +2,7 @@ package me.ayydxn.luminescence.renderer;
 
 import me.ayydxn.luminescence.config.ULConfig;
 import me.ayydxn.luminescence.events.ULGamepadEvent;
+import org.jetbrains.annotations.ApiStatus;
 
 public class ULRenderer
 {
@@ -87,6 +88,12 @@ public class ULRenderer
 
             throw new IllegalArgumentException(message);
         }
+    }
+
+    @ApiStatus.Internal
+    public long getHandle()
+    {
+        return this.handle;
     }
 
     private static final class NativeMethods

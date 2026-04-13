@@ -106,7 +106,7 @@ jint JNICALL ULWebKitVersionNano_Native(JNIEnv*, jclass)
 	return static_cast<jint>(WebKitVersionNano());
 }
 
-static const JNINativeMethod UltralightMethods[] =
+static constexpr JNINativeMethod UltralightMethods[] =
 {
 	JNI_METHOD("nulVersionString", "()Ljava/lang/String;", ULVersionString_Native),
 	JNI_METHOD("nulVersionMajor", "()I", ULVersionMajor_Native),

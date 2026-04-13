@@ -11,7 +11,7 @@
  * Method:    nulCreateGamepadEvent
  * Signature: (II)J
  */
-JNIEXPORT jlong JNICALL ULCreateGamepadEvent_Native(JNIEnv *, jclass, jint Index, jint EventTypeOrdinal)
+jlong JNICALL ULCreateGamepadEvent_Native(JNIEnv *, jclass, jint Index, jint EventTypeOrdinal)
 {
     return reinterpret_cast<jlong>(ulCreateGamepadEvent(static_cast<unsigned int>(Index), static_cast<ULGamepadEventType>(EventTypeOrdinal)));
 }
@@ -21,7 +21,7 @@ JNIEXPORT jlong JNICALL ULCreateGamepadEvent_Native(JNIEnv *, jclass, jint Index
  * Method:    nulDestroyGamepadEvent
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL ULDestroyGamepadEvent_Native(JNIEnv*, jclass, jlong GamepadEventHandle)
+void JNICALL ULDestroyGamepadEvent_Native(JNIEnv*, jclass, jlong GamepadEventHandle)
 {
     ulDestroyGamepadEvent(reinterpret_cast<ULGamepadEvent>(GamepadEventHandle));
 }
@@ -31,7 +31,7 @@ JNIEXPORT void JNICALL ULDestroyGamepadEvent_Native(JNIEnv*, jclass, jlong Gamep
  * Method:    nulCreateGamepadAxisEvent
  * Signature: (IID)J
  */
-JNIEXPORT jlong JNICALL ULCreateGamepadAxisEvent_Native(JNIEnv*, jclass, jint Index, jint AxisIndex, jdouble Value)
+jlong JNICALL ULCreateGamepadAxisEvent_Native(JNIEnv*, jclass, jint Index, jint AxisIndex, jdouble Value)
 {
     return reinterpret_cast<jlong>(ulCreateGamepadAxisEvent(static_cast<unsigned int>(Index), static_cast<unsigned int>(AxisIndex), Value));
 }
@@ -41,7 +41,7 @@ JNIEXPORT jlong JNICALL ULCreateGamepadAxisEvent_Native(JNIEnv*, jclass, jint In
  * Method:    nulDestroyGamepadAxisEvent
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL ULDestroyGamepadAxisEvent_Native(JNIEnv*, jclass, jlong GamepadAxisEventHandle)
+void JNICALL ULDestroyGamepadAxisEvent_Native(JNIEnv*, jclass, jlong GamepadAxisEventHandle)
 {
     ulDestroyGamepadAxisEvent(reinterpret_cast<ULGamepadAxisEvent>(GamepadAxisEventHandle));
 }
@@ -51,7 +51,7 @@ JNIEXPORT void JNICALL ULDestroyGamepadAxisEvent_Native(JNIEnv*, jclass, jlong G
  * Method:    nulCreateGamepadButtonEvent
  * Signature: (IID)J
  */
-JNIEXPORT jlong JNICALL ULCreateGamepadButtonEvent_Native(JNIEnv*, jclass, jint Index, jint ButtonIndex, jdouble Value)
+jlong JNICALL ULCreateGamepadButtonEvent_Native(JNIEnv*, jclass, jint Index, jint ButtonIndex, jdouble Value)
 {
     return reinterpret_cast<jlong>(ulCreateGamepadButtonEvent(static_cast<unsigned int>(Index), static_cast<unsigned int>(ButtonIndex), Value));
 }
@@ -61,7 +61,7 @@ JNIEXPORT jlong JNICALL ULCreateGamepadButtonEvent_Native(JNIEnv*, jclass, jint 
  * Method:    nulDestroyGamepadButtonEvent
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL ULDestroyGamepadButtonEvent_Native(JNIEnv *, jclass, jlong GamepadButtonEventHandle)
+void JNICALL ULDestroyGamepadButtonEvent_Native(JNIEnv *, jclass, jlong GamepadButtonEventHandle)
 {
     ulDestroyGamepadButtonEvent(reinterpret_cast<ULGamepadButtonEvent>(GamepadButtonEventHandle)); 
 }

@@ -168,7 +168,7 @@ void JNICALL ULAssignCString_Native(JNIEnv* Environment, jclass, jlong StringHan
     Environment->ReleaseStringUTFChars(String, StringCStr);
 }
 
-static const JNINativeMethod StringMethods[] =
+static constexpr JNINativeMethod StringMethods[] =
 {
     JNI_METHOD("nulCreateString", "(Ljava/lang/String;)J", ULCreateString_Native),
     JNI_METHOD("nulCreateStringUTF8", "(Ljava/lang/String;)J", ULCreateStringUTF8_Native),

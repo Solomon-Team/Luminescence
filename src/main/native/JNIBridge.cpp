@@ -6,6 +6,8 @@
 
 #include <jni.h>
 
+#define CALL_REGISTER_METHOD(RegistrationMethod) if (!Luminescence::RegistrationMethod(Environment)) return JNI_ERR; 
+
 extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* VirtualMachine, void*)
 {
 	JNIEnv* Environment;
@@ -14,28 +16,19 @@ extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* VirtualMachine, void*)
 	if (VirtualMachine->GetEnv(reinterpret_cast<void**>(&Environment), JNI_VERSION_10) != JNI_OK) {
 		return JNI_ERR;
 	}
+	
+	/* -- Ultralight -- */
+	CALL_REGISTER_METHOD(RegisterUltralightMethods)
+	CALL_REGISTER_METHOD(RegisterConfigMethods)
+	CALL_REGISTER_METHOD(RegisterStringMethods)
+	CALL_REGISTER_METHOD(RegisterPlatformMethods)
+	CALL_REGISTER_METHOD(RegisterBufferMethods)
+	CALL_REGISTER_METHOD(RegisterRendererMethods)
+	CALL_REGISTER_METHOD(RegisterGamepadEventMethods)
+	CALL_REGISTER_METHOD(RegisterBitmapMethods)
+	CALL_REGISTER_METHOD(RegisterSessionMethods)
+	CALL_REGISTER_METHOD(RegisterViewConfigMethods)
+	CALL_REGISTER_METHOD(RegisterInputEventMethods)
 
-	// Register all our methods
-	if (!Luminescence::RegisterUltralightMethods(Environment))
-		return JNI_ERR;
-	
-	if (!Luminescence::RegisterConfigMethods(Environment))
-		return JNI_ERR;
-	
-	if (!Luminescence::RegisterStringMethods(Environment))
-		return JNI_ERR;
-	
-	if (!Luminescence::RegisterPlatformMethods(Environment))
-		return JNI_ERR;
-	
-	if (!Luminescence::RegisterBufferMethods(Environment))
-		return JNI_ERR;
-	
-	if (!Luminescence::RegisterRendererMethods(Environment))
-		return JNI_ERR;
-	
-	if (!Luminescence::RegisterGamepadEventMethods(Environment))
-		return JNI_ERR;
-	
 	return JNI_VERSION_10;
 }

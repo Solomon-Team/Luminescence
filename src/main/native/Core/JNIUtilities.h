@@ -28,6 +28,10 @@ namespace Luminescence
     bool RegisterBufferMethods(JNIEnv* Environment);
     bool RegisterRendererMethods(JNIEnv* Environment);
     bool RegisterGamepadEventMethods(JNIEnv* Environment);
+    bool RegisterBitmapMethods(JNIEnv* Environment);
+    bool RegisterSessionMethods(JNIEnv* Environment);
+    bool RegisterViewConfigMethods(JNIEnv* Environment);
+    bool RegisterInputEventMethods(JNIEnv* Environment);
 
     inline bool RegisterNativeMethods(JNIEnv* Environment, const char* ClassName, const JNINativeMethod* Methods, int MethodsCount)
     {
