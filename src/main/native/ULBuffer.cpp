@@ -71,11 +71,11 @@ jlong JNICALL ULBufferGetSize_Native(JNIEnv*, jclass, jlong BufferHandle)
  * Method:    nulBufferOwnsData
  * Signature: (J)Z
  */
-jboolean JNICALL ULBufferOwnsData_Native(JNIEnv* Environment, jclass, jlong BufferHandle)
+jboolean JNICALL ULBufferOwnsData_Native(JNIEnv*, jclass, jlong BufferHandle)
 {
     const auto Buffer = reinterpret_cast<ULBuffer>(BufferHandle);
     
-    return static_cast<jboolean>(ulBufferOwnsData(Buffer));
+    return ulBufferOwnsData(Buffer);
 }
 
 /*

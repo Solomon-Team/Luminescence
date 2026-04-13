@@ -62,10 +62,10 @@ public class ULSessionTest extends BaseLuminescenceTest
         ULSession defaultSession = ULSession.createDefault(renderer);
 
         assertNotNull(defaultSession);
-        assertFalse(defaultSession.isPersistent(), "Default session should be in-memory (non-persistent)");
+        assertTrue(defaultSession.isPersistent(), "Default session should be persistent");
         assertEquals("default", defaultSession.getName().toLowerCase());
 
-        defaultSession.destroy();
+        assertThrows(UnsupportedOperationException.class, defaultSession::destroy);
     }
 
     @AfterAll

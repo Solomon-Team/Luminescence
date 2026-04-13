@@ -4,29 +4,35 @@ import java.nio.file.Path;
 
 public class ULSession
 {
+    private final boolean isDefault;
+
     private long handle;
 
-    private ULSession(long handle)
+    private ULSession(long handle, boolean isDefault)
     {
         this.handle = handle;
+        this.isDefault = isDefault;
     }
 
     public static ULSession create(ULRenderer renderer, boolean isPersistent, String name)
     {
         long handle = NativeMethods.nulCreateSession(renderer.getHandle(), isPersistent, name);
 
-        return new ULSession(handle);
+        return new ULSession(handle, false);
     }
 
     public static ULSession createDefault(ULRenderer renderer)
     {
         long handle = NativeMethods.nulDefaultSession(renderer.getHandle());
 
-        return new ULSession(handle);
+        return new ULSession(handle, true);
     }
 
     public void destroy()
     {
+        if (this.isDefault)
+            throw new UnsupportedOperationException("Cannot destroy default ULSessions as they are owned by the renderer!");
+
         if (this.handle != 0)
         {
             NativeMethods.nulDestroySession(this.handle);
