@@ -5,6 +5,7 @@
 #include "Adapters/ClipboardCallbackAdapter.h"
 #include "Adapters/FileSystemCallbackAdapter.h"
 #include "Adapters/FontLoaderCallbackAdapter.h"
+#include "Adapters/GPUDriverCallbackAdapter.h"
 #include "Adapters/LoggerCallbackAdapter.h"
 #include "Core/JNIUtilities.h"
 
@@ -16,6 +17,7 @@ static std::unique_ptr<Luminescence::CLoggerCallbackAdapter> GLoggerCallbackAdap
 static std::unique_ptr<Luminescence::CFileSystemCallbackAdapter> GFileSystemCallbackAdapter;
 static std::unique_ptr<Luminescence::CClipboardCallbackAdapter> GClipboardCallbackAdapter;
 static std::unique_ptr<Luminescence::CFontLoaderCallbackAdapter> GFontLoaderCallbackAdapter;
+static std::unique_ptr<Luminescence::CGPUDriverCallbackAdapter> GGPUDriverCallbackAdapter;
 
 /*
  * Class:     me_ayydxn_luminescence_platform_ULPlatform_NativeMethods
@@ -67,6 +69,18 @@ void JNICALL ULPlatformSetFontLoader_Native(JNIEnv* Environment, jclass, jobject
 
 /*
  * Class:     me_ayydxn_luminescence_platform_ULPlatform_NativeMethods
+ * Method:    nulPlatformSetGPUDriver
+ * Signature: (Lme/ayydxn/luminescence/platform/ULGPUDriver;)V
+ */
+void JNICALL ULPlatformSetGPUDriver_Native(JNIEnv* Environment, jclass, jobject GPUDriverJavaInstance)
+{
+    GGPUDriverCallbackAdapter = std::make_unique<Luminescence::CGPUDriverCallbackAdapter>(Environment, GPUDriverJavaInstance);
+
+    ulPlatformSetGPUDriver(GGPUDriverCallbackAdapter->MakeStruct());
+}
+
+/*
+ * Class:     me_ayydxn_luminescence_platform_ULPlatform_NativeMethods
  * Method:    nulPlatformShutdown
  * Signature: ()V
  */
@@ -76,6 +90,7 @@ void JNICALL ULPlatformShutdown_Native(JNIEnv*, jclass)
     GFileSystemCallbackAdapter.reset();
     GClipboardCallbackAdapter.reset();
     GFontLoaderCallbackAdapter.reset();
+    GGPUDriverCallbackAdapter.reset();
 }
 
 static constexpr JNINativeMethod PlatformMethods[] =
@@ -84,6 +99,7 @@ static constexpr JNINativeMethod PlatformMethods[] =
     JNI_METHOD("nulPlatformSetFileSystem", "(Lme/ayydxn/luminescence/platform/ULFileSystem;)V", ULPlatformSetFileSystem_Native),
     JNI_METHOD("nulPlatformSetClipboard", "(Lme/ayydxn/luminescence/platform/ULClipboard;)V", ULPlatformSetClipboard_Native),
     JNI_METHOD("nulPlatformSetFontLoader", "(Lme/ayydxn/luminescence/platform/ULFontLoader;)V", ULPlatformSetFontLoader_Native),
+    JNI_METHOD("nulPlatformSetGPUDriver", "(Lme/ayydxn/luminescence/platform/ULGPUDriver;)V", ULPlatformSetGPUDriver_Native),
     JNI_METHOD("nulPlatformShutdown", "()V", ULPlatformShutdown_Native),
 };
 

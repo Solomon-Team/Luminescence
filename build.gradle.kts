@@ -41,13 +41,16 @@ repositories {
 }
 
 dependencies {
-    compileOnly("org.jetbrains:annotations:${rootProject.property("jetbrains_annotations_version").toString()}")
-
     implementation("com.ibm.icu:icu4j:${rootProject.property("icu4j_version").toString()}")
 
+    compileOnly("org.jetbrains:annotations:${rootProject.property("jetbrains_annotations_version").toString()}")
+
+    /* -- Tests -- */
     testImplementation(platform("org.junit:junit-bom:${rootProject.property("junit_version").toString()}"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    testImplementation("org.mockito:mockito-core:${rootProject.property("mockito_version").toString()}")
 }
 
 val generateJniHeaders by tasks.registering(JavaCompile::class) {

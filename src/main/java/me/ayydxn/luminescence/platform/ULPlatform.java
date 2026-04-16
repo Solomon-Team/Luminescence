@@ -43,6 +43,14 @@ public class ULPlatform
         NativeMethods.nulPlatformSetFontLoader(fontLoader);
     }
 
+    public static void setGPUDriver(ULGPUDriver gpuDriver)
+    {
+        if (gpuDriver == null)
+            throw new IllegalArgumentException("Cannot set the platform GPU driver to a null ULGPUDriver instance!");
+
+        NativeMethods.nulPlatformSetGPUDriver(gpuDriver);
+    }
+
     private static final class NativeMethods
     {
         private static native void nulPlatformSetLogger(ULLogger logger);
@@ -52,6 +60,8 @@ public class ULPlatform
         private static native void nulPlatformSetClipboard(ULClipboard clipboard);
 
         private static native void nulPlatformSetFontLoader(ULFontLoader fontLoader);
+
+        private static native void nulPlatformSetGPUDriver(ULGPUDriver gpuDriver);
 
         /** ADDED BY LUMINESCENCE: Used to primarily by the C++ side to clean up any callback adapters we have created. */
         private static native void nulPlatformShutdown();
