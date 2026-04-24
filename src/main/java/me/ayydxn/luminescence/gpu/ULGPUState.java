@@ -1,6 +1,6 @@
 package me.ayydxn.luminescence.gpu;
 
-import me.ayydxn.luminescence.geometry.IntRect;
+import me.ayydxn.luminescence.geometry.ULIntRect;
 
 public class ULGPUState
 {
@@ -19,5 +19,5 @@ public class ULGPUState
     public int clipSize;
     public float[] clip; // 128 floats (8 × mat4x4)
     public boolean enableScissor;
-    public IntRect scissorRect;
+    public ULIntRect scissorRect;
 }

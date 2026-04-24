@@ -3,7 +3,7 @@ package me.ayydxn.luminescence.view;
 // TODO: (Ayydxn) Reference the equivalent Java methods when they get added
 
 import me.ayydxn.luminescence.bitmap.BitmapFormat;
-import me.ayydxn.luminescence.geometry.Rect;
+import me.ayydxn.luminescence.geometry.ULRect;
 
 /**
  * Offscreen render target, used when rendering Views via the GPU renderer.
@@ -20,7 +20,7 @@ import me.ayydxn.luminescence.geometry.Rect;
  *
  * @author Ayydxn
  */
-public class RenderTarget
+public class ULRenderTarget
 {
     /** Whether this target is empty (null texture) */
     public boolean isEmpty;
@@ -46,13 +46,13 @@ public class RenderTarget
      * <p>
      * This may be padded.
      */
-    public int textureHeigth;
+    public int textureHeight;
 
     /**	The pixel format of the texture. */
     public BitmapFormat bitmapFormat;
 
     /** UV coordinates of the texture (this is needed because the texture may be padded). */
-    public Rect uvCoords;
+    public ULRect uvCoords;
 
     /**	The GPUDriver-specific render buffer ID. */
     public int renderBufferID;

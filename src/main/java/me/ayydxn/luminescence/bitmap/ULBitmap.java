@@ -1,5 +1,7 @@
 package me.ayydxn.luminescence.bitmap;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 
@@ -7,7 +9,8 @@ public class ULBitmap
 {
     private long handle;
 
-    private ULBitmap(long handle)
+    @ApiStatus.Internal
+    public ULBitmap(long handle)
     {
         this.handle = handle;
     }

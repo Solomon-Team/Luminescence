@@ -43,11 +43,14 @@ bin/
 ### Mac OS ###
 .DS_Store
 
-# Java
+### Java ###
 hs_err_*.log
 replay_*.log
 *.hprof
 *.jfr
+
+### Ultralight ###
+default
 
 ### Files ###
 *.dll

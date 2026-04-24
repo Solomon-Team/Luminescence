@@ -5,14 +5,14 @@ package me.ayydxn.luminescence.geometry;
  *
  * @author Ayydxn
  */
-public class Rect
+public class ULRect
 {
     public float left;
     public float top;
     public float right;
     public float bottom;
 
-    public Rect(float left, float top, float right, float bottom)
+    public ULRect(float left, float top, float right, float bottom)
     {
         this.left = left;
         this.top = top;

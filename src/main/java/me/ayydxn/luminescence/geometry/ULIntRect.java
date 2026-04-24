@@ -5,14 +5,14 @@ package me.ayydxn.luminescence.geometry;
  *
  * @author Ayydxn
  */
-public class IntRect
+public class ULIntRect
 {
     public int left;
     public int top;
     public int right;
     public int bottom;
 
-    public IntRect(int left, int top, int right, int bottom)
+    public ULIntRect(int left, int top, int right, int bottom)
     {
         this.left = left;
         this.top = top;

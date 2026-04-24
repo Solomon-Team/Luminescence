@@ -3,6 +3,7 @@
 //
 
 #include "Core/JNIUtilities.h"
+#include "Core/CacheDefinitions.h"
 
 #include <jni.h>
 
@@ -10,7 +11,7 @@
 
 extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* VirtualMachine, void*)
 {
-	JNIEnv* Environment;
+	JNIEnv* Environment = nullptr;
 
 	// Check if the JVM supports JNI 1.10 and fail the load if it doesn't
 	if (VirtualMachine->GetEnv(reinterpret_cast<void**>(&Environment), JNI_VERSION_10) != JNI_OK) {
@@ -28,7 +29,19 @@ extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* VirtualMachine, void*)
 	CALL_REGISTER_METHOD(RegisterBitmapMethods)
 	CALL_REGISTER_METHOD(RegisterSessionMethods)
 	CALL_REGISTER_METHOD(RegisterViewConfigMethods)
+	CALL_REGISTER_METHOD(RegisterViewMethods)
 	CALL_REGISTER_METHOD(RegisterInputEventMethods)
+	CALL_REGISTER_METHOD(RegisterSurfaceMethods)
 
 	return JNI_VERSION_10;
+}
+
+extern "C" JNIEXPORT void JNI_OnUnload(JavaVM* VirtualMachine, void*)
+{
+	JNIEnv* Environment = nullptr;
+	if (VirtualMachine->GetEnv(reinterpret_cast<void**>(&Environment), JNI_VERSION_10) != JNI_OK)
+		return;
+
+	Luminescence::CIntRectCache::ClearCache(Environment);
+	Luminescence::CRenderTargetCache::ClearCache(Environment);
 }

@@ -1,5 +1,7 @@
 package me.ayydxn.luminescence.view;
 
+import org.jetbrains.annotations.ApiStatus;
+
 public class ULViewConfig implements AutoCloseable
 {
     private long handle;
@@ -72,6 +74,12 @@ public class ULViewConfig implements AutoCloseable
     public void setUserAgent(String userAgent)
     {
         NativeMethods.nulViewConfigSetUserAgent(this.handle, userAgent);
+    }
+
+    @ApiStatus.Internal
+    public long getHandle()
+    {
+        return this.handle;
     }
 
     private static final class NativeMethods

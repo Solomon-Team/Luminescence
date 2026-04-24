@@ -1,5 +1,7 @@
 package me.ayydxn.luminescence.renderer;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import java.nio.file.Path;
 
 public class ULSession
@@ -60,6 +62,12 @@ public class ULSession
         String diskPathString = NativeMethods.nulSessionGetDiskPath(this.handle);
 
         return Path.of(diskPathString);
+    }
+
+    @ApiStatus.Internal
+    public long getHandle()
+    {
+        return this.handle;
     }
 
     private static final class NativeMethods
