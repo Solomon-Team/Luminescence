@@ -1,4 +1,4 @@
-package me.ayydxn.luminescence.view;
+package me.ayydxn.luminescence.gpu;
 
 // TODO: (Ayydxn) Reference the equivalent Java methods when they get added
 

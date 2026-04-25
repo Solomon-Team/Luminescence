@@ -2,6 +2,9 @@ package me.ayydxn.luminescence.view;
 
 import me.ayydxn.luminescence.BaseLuminescenceTest;
 import me.ayydxn.luminescence.config.ULConfig;
+import me.ayydxn.luminescence.console.ULMessageLevel;
+import me.ayydxn.luminescence.console.ULMessageSource;
+import me.ayydxn.luminescence.geometry.ULIntRect;
 import me.ayydxn.luminescence.platform.ULPlatform;
 import me.ayydxn.luminescence.platform.impl.StandardULFileSystem;
 import me.ayydxn.luminescence.platform.impl.StandardULFontLoader;
@@ -13,6 +16,8 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -191,5 +196,45 @@ class ULViewTest extends BaseLuminescenceTest
         {
             assertEquals(newWidth, view.getSurface().getWidth());
         }
+    }
+
+    @Test
+    @Order(7)
+    @DisplayName("Test Error Handling Callbacks")
+    void testErrorCallbacks()
+    {
+        AtomicBoolean failCalled = new AtomicBoolean(false);
+
+        view.setListener(new ULViewListener()
+        {
+            @Override
+            public void onLoadingFail(long frameID, boolean isMainFrame, String url, String desc, String domain, int code)
+            {
+                assertNotNull(url);
+                assertNotNull(desc);
+
+                failCalled.set(true);
+            }
+        });
+
+        view.loadURL("https://this-domain-hopefully-does-not-exist-123456789.com");
+
+        int attempts = 0;
+        while (!failCalled.get() && attempts < 500)
+        {
+            renderer.update();
+
+            try
+            {
+                Thread.sleep(10);
+            }
+            catch (InterruptedException ignored)
+            {
+            }
+
+            attempts++;
+        }
+
+        assertTrue(failCalled.get(), "onLoadingFail should have been triggered for invalid URL");
     }
 }

@@ -4,8 +4,7 @@
 
 #pragma once
 
-// Forward declaration. This is most likely gonna get included in a file where jni.h is being included, so no point in including it here. 
-typedef JNIEnv_ JNIEnv;
+#include <jni.h>
 
 namespace Luminescence
 {

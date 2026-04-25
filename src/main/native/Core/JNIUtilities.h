@@ -67,10 +67,10 @@ namespace Luminescence
         return Result;
     }
 
-    // Throw a C++ exception if a Java exception is pending, clearing it first so the JNI environment is left clean for the caller to handle.
+    // Describe and clear any pending Java exceptions to prevent them from crashing the JVM during native-to-Java callbacks.
     inline void CheckException(JNIEnv* Env)
     {
-        if (Env->ExceptionCheck())
+        if (Env && Env->ExceptionCheck())
         {
             Env->ExceptionDescribe();
             Env->ExceptionClear();

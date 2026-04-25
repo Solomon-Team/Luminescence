@@ -1,7 +1,99 @@
+#include "Adapters/ViewCallbackAdapter.h"
+#include "Cache/BitmapFormatCache.h"
+#include "Cache/RectCache.h"
+#include "Cache/RenderTargetCache.h"
+#include "Cache/ViewCache.h"
+#include "Core/CallbackAdapterRegistry.h"
 #include "Core/JNIUtilities.h"
-#include "Core/CacheDefinitions.h"
 
 #include <Ultralight/CAPI/CAPI_View.h>
+
+namespace
+{
+	using namespace Luminescence;
+
+	void OnChangeTitle_Trampoline(void*, ULView Caller, ULString Title)
+	{
+		if (const auto* ViewCallbackAdapter = dynamic_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
+			ViewCallbackAdapter->OnChangeTitle(Title);
+	}
+
+	void OnChangeURL_Trampoline(void*, ULView Caller, ULString URL)
+	{
+		if (const auto* ViewCallbackAdapter = dynamic_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
+			ViewCallbackAdapter->OnChangeURL(URL);
+	}
+
+	void OnTooltipChange_Trampoline(void*, ULView Caller, ULString Tooltip)
+	{
+		if (const auto* ViewCallbackAdapter = dynamic_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
+			ViewCallbackAdapter->OnTooltipChange(Tooltip);
+	}
+
+	void OnCursorChange_Trampoline(void*, ULView Caller, ULCursor Cursor)
+	{
+		if (const auto* ViewCallbackAdapter = dynamic_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
+			ViewCallbackAdapter->OnCursorChange(Cursor);
+	}
+
+	void OnConsoleMessageAdded_Trampoline(void*, ULView Caller, ULMessageSource Source, ULMessageLevel Level, ULString Message, unsigned int LineNumber, unsigned int ColumnNumber, ULString SourceID)
+	{
+		if (const auto* ViewCallbackAdapter = dynamic_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
+			ViewCallbackAdapter->OnConsoleMessageAdded(Source, Level, Message, LineNumber, ColumnNumber, SourceID);
+	}
+
+	ULView OnChildViewCreated_Trampoline(void*, ULView Caller, ULString OpenerURL, ULString TargetURL, bool bIsPopup, ULIntRect PopupRect)
+	{
+		if (const auto* ViewCallbackAdapter = dynamic_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
+			return ViewCallbackAdapter->OnChildViewCreated(OpenerURL, TargetURL, bIsPopup, PopupRect);
+		
+		return nullptr;
+	}
+	
+	ULView OnInspectorViewCreated_Trampoline(void*, ULView Caller, bool bIsLocal, ULString InspectedURL)
+	{
+		if (const auto* ViewCallbackAdapter = dynamic_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
+			return ViewCallbackAdapter->OnInspectorViewCreated(bIsLocal, InspectedURL);
+		
+		return nullptr;
+	}
+	
+	void OnLoadingBegin_Trampoline(void*, ULView Caller, unsigned long long FrameID, bool bIsMainFrame, ULString URL)
+	{
+		if (const auto* ViewCallbackAdapter = dynamic_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
+			ViewCallbackAdapter->OnLoadingBegin(FrameID, bIsMainFrame, URL);
+	}
+	
+	void OnLoadingFinish_Trampoline(void*, ULView Caller, unsigned long long FrameID, bool bIsMainFrame, ULString URL)
+	{
+		if (const auto* ViewCallbackAdapter = dynamic_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
+			ViewCallbackAdapter->OnLoadingFinish(FrameID, bIsMainFrame, URL);
+	}
+	
+	void OnLoadingFail_Trampoline(void*, ULView Caller, unsigned long long FrameID, bool bIsMainFrame, ULString URL, ULString Description, ULString ErrorDomain, int ErrorCode)
+	{
+		if (const auto* ViewCallbackAdapter = dynamic_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
+			ViewCallbackAdapter->OnLoadingFail(FrameID, bIsMainFrame, URL, Description, ErrorDomain, ErrorCode);
+	}
+	
+	void OnWindowObjectReady_Trampoline(void*, ULView Caller, unsigned long long FrameID, bool bIsMainFrame, ULString URL)
+	{
+		if (const auto* ViewCallbackAdapter = dynamic_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
+			ViewCallbackAdapter->OnWindowObjectReady(FrameID, bIsMainFrame, URL);
+	}
+	
+	void OnDOMReady_Trampoline(void*, ULView Caller, unsigned long long FrameID, bool bIsMainFrame, ULString URL)
+	{
+		if (const auto* ViewCallbackAdapter = dynamic_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
+			ViewCallbackAdapter->OnDOMReady(FrameID, bIsMainFrame, URL);
+	}
+	
+	void OnUpdateHistory_Trampoline(void*, ULView Caller)
+	{
+		if (const auto* ViewCallbackAdapter = dynamic_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
+			ViewCallbackAdapter->OnUpdateHistory();
+	}
+}
 
 /*
  * Class:     me_ayydxn_luminescence_view_ULView_NativeMethods
@@ -13,7 +105,7 @@ jlong JNICALL ULCreateView_Native(JNIEnv*, jclass, jlong RendererHandle, jint Wi
 	const auto Renderer = reinterpret_cast<ULRenderer>(RendererHandle);
 	const auto ViewConfig = reinterpret_cast<ULViewConfig>(ViewConfigHandle);
 	const auto Session = reinterpret_cast<ULSession>(SessionHandle);
-	
+
 	const auto View = ulCreateView(Renderer, static_cast<unsigned int>(Width), static_cast<unsigned int>(Height), ViewConfig, Session);
 
 	return reinterpret_cast<jlong>(View);
@@ -154,7 +246,7 @@ jboolean JNICALL ULViewIsLoading_Native(JNIEnv*, jclass, jlong ViewHandle)
 /*
  * Class:     me_ayydxn_luminescence_view_ULView_NativeMethods
  * Method:    nulViewGetRenderTarget
- * Signature: (J)Lme/ayydxn/luminescence/view/ULRenderTarget;
+ * Signature: (J)Lme/ayydxn/luminescence/gpu/ULRenderTarget;
  */
 jobject JNICALL ULViewGetRenderTarget_Native(JNIEnv* Environment, jclass, jlong ViewHandle)
 {
@@ -163,21 +255,22 @@ jobject JNICALL ULViewGetRenderTarget_Native(JNIEnv* Environment, jclass, jlong 
 	const auto View = reinterpret_cast<ULView>(ViewHandle);
 	const auto RenderTarget = ulViewGetRenderTarget(View);
 
-	jobject RenderTargetObject = Environment->NewObject(CRenderTargetCache::ClassRef, CRenderTargetCache::Constructor);
+	const jobject RenderTargetObject = Environment->NewObject(CRenderTargetCache::ClassRef, CRenderTargetCache::Constructor);
 
 	Environment->SetBooleanField(RenderTargetObject, CRenderTargetCache::IsEmptyFieldID, RenderTarget.is_empty);
-	Environment->SetIntField(RenderTargetObject, CRenderTargetCache::WidthFieldID, RenderTarget.width);
-	Environment->SetIntField(RenderTargetObject, CRenderTargetCache::HeightFieldID, RenderTarget.height);
-	Environment->SetIntField(RenderTargetObject, CRenderTargetCache::TextureIDField, RenderTarget.texture_id);
-	Environment->SetIntField(RenderTargetObject, CRenderTargetCache::TextureWidthField, RenderTarget.texture_width);
-	Environment->SetIntField(RenderTargetObject, CRenderTargetCache::TextureHeightField, RenderTarget.texture_height);
-	Environment->SetIntField(RenderTargetObject, CRenderTargetCache::RenderBufferFieldID, RenderTarget.render_buffer_id);
+	Environment->SetIntField(RenderTargetObject, CRenderTargetCache::WidthFieldID, static_cast<jint>(RenderTarget.width));
+	Environment->SetIntField(RenderTargetObject, CRenderTargetCache::HeightFieldID, static_cast<jint>(RenderTarget.height));
+	Environment->SetIntField(RenderTargetObject, CRenderTargetCache::TextureIDField, static_cast<jint>(RenderTarget.texture_id));
+	Environment->SetIntField(RenderTargetObject, CRenderTargetCache::TextureWidthField, static_cast<jint>(RenderTarget.texture_width));
+	Environment->SetIntField(RenderTargetObject, CRenderTargetCache::TextureHeightField, static_cast<jint>(RenderTarget.texture_height));
+	Environment->SetIntField(RenderTargetObject, CRenderTargetCache::RenderBufferFieldID, static_cast<jint>(RenderTarget.render_buffer_id));
 
-	jobject BitmapFormatEnum = Environment->CallStaticObjectMethod(CBitmapFormatCache::ClassRef, CBitmapFormatCache::FromNativeMethodID, static_cast<jint>(RenderTarget.texture_format));
+	const jobject BitmapFormatEnum = Environment->CallStaticObjectMethod(CBitmapFormatCache::ClassRef, CBitmapFormatCache::FromNativeMethodID,
+		static_cast<jint>(RenderTarget.texture_format));
 	Environment->SetObjectField(RenderTargetObject, CRenderTargetCache::BitmapFormatFieldID, BitmapFormatEnum);
 
-	jobject UVRect = Environment->NewObject(CRectCache::ClassRef, CRectCache::ConstructorID, RenderTarget.uv_coords.left, RenderTarget.uv_coords.top, RenderTarget.uv_coords.right,
-		RenderTarget.uv_coords.bottom);
+	const jobject UVRect = Environment->NewObject(CRectCache::ClassRef, CRectCache::ConstructorID, RenderTarget.uv_coords.left, RenderTarget.uv_coords.top,
+		RenderTarget.uv_coords.right, RenderTarget.uv_coords.bottom);
 	Environment->SetObjectField(RenderTargetObject, CRenderTargetCache::UVCoordsFieldID, UVRect);
 
 	return RenderTargetObject;
@@ -449,6 +542,94 @@ void JNICALL ULViewFireScrollEvent_Native(JNIEnv*, jclass, jlong ViewHandle, jlo
 	ulViewFireScrollEvent(View, ScrollEvent);
 }
 
+/*
+ * Class:     me_ayydxn_luminescence_view_ULView_NativeMethods
+ * Method:    nulViewSetViewListener
+ * Signature: (JLme/ayydxn/luminescence/view/ULViewListener;)V
+ */
+void JNICALL ULViewSetViewListener_Native(JNIEnv* Environment, jclass, jlong ViewHandle, jobject ViewListenerInstance)
+{
+	using namespace Luminescence;
+
+	const auto View = reinterpret_cast<ULView>(ViewHandle);
+	const auto Key = reinterpret_cast<uintptr_t>(View);
+	auto& CallbackAdapterRegistry = CCallbackAdapterRegistry::GetInstance();
+
+	if (const auto* OldCallbackAdapter = CallbackAdapterRegistry.Find(Key))
+	{
+		CallbackAdapterRegistry.Unregister(Key);
+
+		delete OldCallbackAdapter;
+	}
+
+	if (ViewListenerInstance)
+	{
+		CallbackAdapterRegistry.Register(Key, new CViewCallbackAdapter(Environment, ViewListenerInstance));
+
+		ulViewSetChangeTitleCallback(View, OnChangeTitle_Trampoline, nullptr);
+		ulViewSetChangeURLCallback(View, OnChangeURL_Trampoline, nullptr);
+		ulViewSetChangeTooltipCallback(View, OnTooltipChange_Trampoline, nullptr);
+		ulViewSetChangeCursorCallback(View, OnCursorChange_Trampoline, nullptr);
+		ulViewSetAddConsoleMessageCallback(View, OnConsoleMessageAdded_Trampoline, nullptr);
+		ulViewSetCreateChildViewCallback(View, OnChildViewCreated_Trampoline, nullptr);
+		ulViewSetCreateInspectorViewCallback(View, OnInspectorViewCreated_Trampoline, nullptr);
+		ulViewSetBeginLoadingCallback(View, OnLoadingBegin_Trampoline, nullptr);
+		ulViewSetFinishLoadingCallback(View, OnLoadingFinish_Trampoline, nullptr);
+		ulViewSetFailLoadingCallback(View, OnLoadingFail_Trampoline, nullptr);
+		ulViewSetWindowObjectReadyCallback(View, OnWindowObjectReady_Trampoline, nullptr);
+		ulViewSetDOMReadyCallback(View, OnDOMReady_Trampoline, nullptr);
+		ulViewSetUpdateHistoryCallback(View, OnUpdateHistory_Trampoline, nullptr);
+	}
+	else
+	{
+		ulViewSetChangeTitleCallback(View, nullptr, nullptr);
+		ulViewSetChangeURLCallback(View, nullptr, nullptr);
+		ulViewSetChangeTooltipCallback(View, nullptr, nullptr);
+		ulViewSetChangeCursorCallback(View, nullptr, nullptr);
+		ulViewSetAddConsoleMessageCallback(View, nullptr, nullptr);
+		ulViewSetCreateChildViewCallback(View, nullptr, nullptr);
+		ulViewSetCreateInspectorViewCallback(View, nullptr, nullptr);
+		ulViewSetBeginLoadingCallback(View, nullptr, nullptr);
+		ulViewSetFinishLoadingCallback(View, nullptr, nullptr);
+		ulViewSetFailLoadingCallback(View, nullptr, nullptr);
+		ulViewSetWindowObjectReadyCallback(View, nullptr, nullptr);
+		ulViewSetDOMReadyCallback(View, nullptr, nullptr);
+		ulViewSetUpdateHistoryCallback(View, nullptr, nullptr);
+	}
+}
+
+/*
+ * Class:     me_ayydxn_luminescence_view_ULView_NativeMethods
+ * Method:    nulViewSetNeedsPaint
+ * Signature: (JZ)V
+ */
+void JNICALL ULViewSetNeedsPaint_Native(JNIEnv*, jclass, jlong ViewHandle, jboolean bNeedsPaint)
+{
+	const auto View = reinterpret_cast<ULView>(ViewHandle);
+
+	ulViewSetNeedsPaint(View, static_cast<bool>(bNeedsPaint));
+}
+
+/*
+ * Class:     me_ayydxn_luminescence_view_ULView_NativeMethods
+ * Method:    nulViewGetNeedsPaint
+ * Signature: (J)Z
+ */
+jboolean JNICALL ULViewGetNeedsPaint_Native(JNIEnv*, jclass, jlong ViewHandle)
+{
+	return ulViewGetNeedsPaint(reinterpret_cast<ULView>(ViewHandle));
+}
+
+/*
+ * Class:     me_ayydxn_luminescence_view_ULView_NativeMethods
+ * Method:    nulViewCreateLocalInspectorView
+ * Signature: (J)V
+ */
+void JNICALL ULViewCreateLocalInspectorView_Native(JNIEnv*, jclass, jlong ViewHandle)
+{
+	ulViewCreateLocalInspectorView(reinterpret_cast<ULView>(ViewHandle));
+}
+
 static constexpr JNINativeMethod ViewMethods[] = {
 	JNI_METHOD("nulCreateView", "(JIIJJ)J", ULCreateView_Native),
 	JNI_METHOD("nulDestroyView", "(J)V", ULDestroyView_Native),
@@ -463,7 +644,7 @@ static constexpr JNINativeMethod ViewMethods[] = {
 	JNI_METHOD("nulViewIsAccelerated", "(J)Z", ULViewIsAccelerated_Native),
 	JNI_METHOD("nulViewIsTransparent", "(J)Z", ULViewIsTransparent_Native),
 	JNI_METHOD("nulViewIsLoading", "(J)Z", ULViewIsLoading_Native),
-	JNI_METHOD("nulViewGetRenderTarget", "(J)Lme/ayydxn/luminescence/view/ULRenderTarget;", ULViewGetRenderTarget_Native),
+	JNI_METHOD("nulViewGetRenderTarget", "(J)Lme/ayydxn/luminescence/gpu/ULRenderTarget;", ULViewGetRenderTarget_Native),
 	JNI_METHOD("nulViewGetSurface", "(J)J", ULViewGetSurface_Native),
 	JNI_METHOD("nulViewLoadHTML", "(JLjava/lang/String;)V", ULViewLoadHTML_Native),
 	JNI_METHOD("nulViewLoadURL", "(JLjava/lang/String;)V", ULViewLoadURL_Native),
@@ -484,13 +665,18 @@ static constexpr JNINativeMethod ViewMethods[] = {
 	JNI_METHOD("nulViewHasInputFocus", "(J)Z", ULViewHasInputFocus_Native),
 	JNI_METHOD("nulViewFireKeyEvent", "(JJ)V", ULViewFireKeyEvent_Native),
 	JNI_METHOD("nulViewFireMouseEvent", "(JJ)V", ULViewFireMouseEvent_Native),
-	JNI_METHOD("nulViewFireScrollEvent", "(JJ)V", ULViewFireScrollEvent_Native)
+	JNI_METHOD("nulViewFireScrollEvent", "(JJ)V", ULViewFireScrollEvent_Native),
+	JNI_METHOD("nulViewSetViewListener", "(JLme/ayydxn/luminescence/view/ULViewListener;)V", ULViewSetViewListener_Native),
+	JNI_METHOD("nulViewSetNeedsPaint", "(JZ)V", ULViewSetNeedsPaint_Native),
+	JNI_METHOD("nulViewGetNeedsPaint", "(J)Z", ULViewGetNeedsPaint_Native),
+	JNI_METHOD("nulViewCreateLocalInspectorView", "(J)V", ULViewCreateLocalInspectorView_Native),
 };
 
 bool Luminescence::RegisterViewMethods(JNIEnv* Environment)
 {
-	if (!Luminescence::CRenderTargetCache::InitializeCache(Environment))
-		return false;
-
-	return RegisterNativeMethods(Environment, "me/ayydxn/luminescence/view/ULView$NativeMethods", JNI_METHODS_AND_COUNT(ViewMethods));
+	const bool bCacheInitializationStatus = CRenderTargetCache::InitializeCache(Environment) && CViewCache::InitializeCache(Environment);
+	const bool bMethodRegistrationStatus = RegisterNativeMethods(Environment, "me/ayydxn/luminescence/view/ULView$NativeMethods",
+		JNI_METHODS_AND_COUNT(ViewMethods));
+	
+	return bCacheInitializationStatus && bMethodRegistrationStatus;
 }

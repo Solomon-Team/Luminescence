@@ -3,9 +3,11 @@ package me.ayydxn.luminescence.view;
 import me.ayydxn.luminescence.events.ULKeyEvent;
 import me.ayydxn.luminescence.events.ULMouseEvent;
 import me.ayydxn.luminescence.events.ULScrollEvent;
+import me.ayydxn.luminescence.gpu.ULRenderTarget;
 import me.ayydxn.luminescence.renderer.ULRenderer;
 import me.ayydxn.luminescence.renderer.ULSession;
 import me.ayydxn.luminescence.surface.ULSurface;
+import me.ayydxn.luminescence.util.UsedByNative;
 import org.jetbrains.annotations.Nullable;
 
 public class ULView
@@ -15,6 +17,12 @@ public class ULView
     public ULView(ULRenderer renderer, int width, int height, ULViewConfig viewConfig, @Nullable ULSession session)
     {
         this.handle = NativeMethods.nulCreateView(renderer.getHandle(), width, height, viewConfig.getHandle(), session != null ? session.getHandle() : 0);
+    }
+
+    @UsedByNative("ViewCallbackAdapter.cpp")
+    private ULView(long handle)
+    {
+        this.handle = handle;
     }
 
     public void destroy()
@@ -200,6 +208,26 @@ public class ULView
         NativeMethods.nulViewFireScrollEvent(this.handle, scrollEvent.getHandle());
     }
 
+    public void setListener(@Nullable ULViewListener listener)
+    {
+        NativeMethods.nulViewSetViewListener(this.handle, listener);
+    }
+
+    public void setNeedsPaint(boolean needsPaint)
+    {
+        NativeMethods.nulViewSetNeedsPaint(this.handle, needsPaint);
+    }
+
+    public boolean needsPaint()
+    {
+        return NativeMethods.nulViewGetNeedsPaint(this.handle);
+    }
+
+    public void createLocalInspectorView()
+    {
+        NativeMethods.nulViewCreateLocalInspectorView(this.handle);
+    }
+
     public final class JSContext implements AutoCloseable
     {
         private final long handle;
@@ -227,70 +255,78 @@ public class ULView
 
         private static native void nulDestroyView(long handle);
 
-        public static native String nulViewGetURL(long handle);
+        private static native String nulViewGetURL(long handle);
 
-        public static native String nulViewGetTitle(long handle);
+        private static native String nulViewGetTitle(long handle);
 
-        public static native int nulViewGetWidth(long handle);
+        private static native int nulViewGetWidth(long handle);
 
-        public static native int nulViewGetHeight(long handle);
+        private static native int nulViewGetHeight(long handle);
 
-        public static native int nulViewGetDisplayId(long handle);
+        private static native int nulViewGetDisplayId(long handle);
 
-        public static native void nulViewSetDisplayId(long handle, int displayId);
+        private static native void nulViewSetDisplayId(long handle, int displayId);
 
-        public static native double nulViewGetDeviceScale(long handle);
+        private static native double nulViewGetDeviceScale(long handle);
 
-        public static native void nulViewSetDeviceScale(long handle, double scale);
+        private static native void nulViewSetDeviceScale(long handle, double scale);
 
-        public static native boolean nulViewIsAccelerated(long handle);
+        private static native boolean nulViewIsAccelerated(long handle);
 
-        public static native boolean nulViewIsTransparent(long handle);
+        private static native boolean nulViewIsTransparent(long handle);
 
-        public static native boolean nulViewIsLoading(long handle);
+        private static native boolean nulViewIsLoading(long handle);
 
-        public static native ULRenderTarget nulViewGetRenderTarget(long handle);
+        private static native ULRenderTarget nulViewGetRenderTarget(long handle);
 
-        public static native long nulViewGetSurface(long handle);
+        private static native long nulViewGetSurface(long handle);
 
-        public static native void nulViewLoadHTML(long handle, String htmlString);
+        private static native void nulViewLoadHTML(long handle, String htmlString);
 
-        public static native void nulViewLoadURL(long handle, String urlString);
+        private static native void nulViewLoadURL(long handle, String urlString);
 
-        public static native void nulViewResize(long handle, int width, int height);
+        private static native void nulViewResize(long handle, int width, int height);
 
-        public static native long nulViewLockJSContext(long handle);
+        private static native long nulViewLockJSContext(long handle);
 
-        public static native void nulViewUnlockJSContext(long handle);
+        private static native void nulViewUnlockJSContext(long handle);
 
-        public static native String nulViewEvaluateScript(long handle, String jsString, String[] exception);
+        private static native String nulViewEvaluateScript(long handle, String jsString, String[] exception);
 
-        public static native boolean nulViewCanGoBack(long handle);
+        private static native boolean nulViewCanGoBack(long handle);
 
-        public static native boolean nulViewCanGoForward(long handle);
+        private static native boolean nulViewCanGoForward(long handle);
 
-        public static native void nulViewGoBack(long handle);
+        private static native void nulViewGoBack(long handle);
 
-        public static native void nulViewGoForward(long handle);
+        private static native void nulViewGoForward(long handle);
 
-        public static native void nulViewGoToHistoryOffset(long handle, int offset);
+        private static native void nulViewGoToHistoryOffset(long handle, int offset);
 
-        public static native void nulViewReload(long handle);
+        private static native void nulViewReload(long handle);
 
-        public static native void nulViewStop(long handle);
+        private static native void nulViewStop(long handle);
 
-        public static native void nulViewFocus(long handle);
+        private static native void nulViewFocus(long handle);
 
-        public static native void nulViewUnfocus(long handle);
+        private static native void nulViewUnfocus(long handle);
 
-        public static native boolean nulViewHasFocus(long handle);
+        private static native boolean nulViewHasFocus(long handle);
 
-        public static native boolean nulViewHasInputFocus(long handle);
+        private static native boolean nulViewHasInputFocus(long handle);
 
-        public static native void nulViewFireKeyEvent(long handle, long keyEventHandle);
+        private static native void nulViewFireKeyEvent(long handle, long keyEventHandle);
 
-        public static native void nulViewFireMouseEvent(long handle, long mouseEventHandle);
+        private static native void nulViewFireMouseEvent(long handle, long mouseEventHandle);
 
-        public static native void nulViewFireScrollEvent(long handle, long scrollEventHandle);
+        private static native void nulViewFireScrollEvent(long handle, long scrollEventHandle);
+
+        private static native void nulViewSetViewListener(long handle, ULViewListener listener);
+
+        private static native void nulViewSetNeedsPaint(long handle, boolean needsPaint);
+
+        private static native boolean nulViewGetNeedsPaint(long handle);
+
+        private static native void nulViewCreateLocalInspectorView(long handle);
     }
 }

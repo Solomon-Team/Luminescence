@@ -1,5 +1,5 @@
+#include "Cache/IntRectCache.h"
 #include "Core/JNIUtilities.h"
-#include "Core/CacheDefinitions.h"
 
 #include <Ultralight/CAPI/CAPI_Surface.h>
 
@@ -95,11 +95,12 @@ void JNICALL ULSurfaceSetDirtyBounds_Native(JNIEnv* Environment, jclass, jlong S
 {
 	using namespace Luminescence;
 
-	ULIntRect DirtyBoundsRect;
-    DirtyBoundsRect.left = Environment->GetIntField(DirtyBounds, CIntRectCache::LeftFieldID);
-    DirtyBoundsRect.top = Environment->GetIntField(DirtyBounds, CIntRectCache::TopFieldID);
-    DirtyBoundsRect.right = Environment->GetIntField(DirtyBounds, CIntRectCache::RightFieldID);
-    DirtyBoundsRect.bottom = Environment->GetIntField(DirtyBounds, CIntRectCache::BottomFieldID);
+	const ULIntRect DirtyBoundsRect = {
+		.left = Environment->GetIntField(DirtyBounds, CIntRectCache::LeftFieldID),
+		.top = Environment->GetIntField(DirtyBounds, CIntRectCache::TopFieldID),
+		.right = Environment->GetIntField(DirtyBounds, CIntRectCache::RightFieldID),
+		.bottom = Environment->GetIntField(DirtyBounds, CIntRectCache::BottomFieldID)
+	};
 
     ulSurfaceSetDirtyBounds(reinterpret_cast<ULSurface>(SurfaceHandle), DirtyBoundsRect);
 }

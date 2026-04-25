@@ -26,8 +26,14 @@ namespace Luminescence
     JNIEnv* ICallbackAdapter::GetJNIEnvironment() const
     {
         JNIEnv* Environment = nullptr;
-        m_JVM->GetEnv(reinterpret_cast<void**>(&Environment), JNI_VERSION_10);
-        
+        const jint GetEnvResult = m_JVM->GetEnv(reinterpret_cast<void**>(&Environment), JNI_VERSION_10);
+
+        if (GetEnvResult == JNI_EDETACHED)
+        {
+            if (m_JVM->AttachCurrentThread(reinterpret_cast<void**>(&Environment), nullptr) != JNI_OK)
+                return nullptr;
+        }
+
         return Environment;
     }
 }

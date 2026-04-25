@@ -2,8 +2,10 @@
 // Created by Ayydxn on 4/6/2026.
 //
 
+#include "Cache/IntRectCache.h"
+#include "Cache/RenderTargetCache.h"
+#include "Cache/ViewCache.h"
 #include "Core/JNIUtilities.h"
-#include "Core/CacheDefinitions.h"
 
 #include <jni.h>
 
@@ -44,4 +46,5 @@ extern "C" JNIEXPORT void JNI_OnUnload(JavaVM* VirtualMachine, void*)
 
 	Luminescence::CIntRectCache::ClearCache(Environment);
 	Luminescence::CRenderTargetCache::ClearCache(Environment);
+	Luminescence::CViewCache::ClearCache(Environment);
 }
