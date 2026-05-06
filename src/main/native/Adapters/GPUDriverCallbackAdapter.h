@@ -60,6 +60,16 @@ namespace Luminescence
         jmethodID m_ShaderTypeFromNativeMethodID = nullptr;
         jclass m_GPUStateClass = nullptr;
         jmethodID m_GPUStateConstructorID = nullptr;
+        jfieldID m_GPUStateViewportWidth = nullptr;
+        jfieldID m_GPUStateViewportHeight = nullptr;
+        jfieldID m_GPUStateEnableTexturingField = nullptr;
+        jfieldID m_GPUStateEnableBlendField = nullptr;
+        jfieldID m_GPUStateRenderBufferIDField = nullptr;
+        jfieldID m_GPUStateTexture1IDField = nullptr;
+        jfieldID m_GPUStateTexture2IDField = nullptr;
+        jfieldID m_GPUStateTexture3IDField = nullptr;
+        jfieldID m_GPUStateClipSizeField = nullptr;
+        jfieldID m_GPUStateEnableScissorField = nullptr;
         jfieldID m_GPUStateShaderTypeFieldID = nullptr;
         jclass m_RenderBufferClass = nullptr;
         jmethodID m_RenderBufferConstructorID = nullptr;

@@ -19,14 +19,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor;
-import static org.lwjgl.glfw.GLFW.glfwGetVideoMode;
+import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.GL_BGRA;
 import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL14.GL_FUNC_ADD;
+import static org.lwjgl.opengl.GL14.glBlendEquation;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
@@ -45,17 +45,15 @@ import static org.lwjgl.opengl.GL45.*;
  *       {@code updateTexture} without needing to recreate the texture object.</li>
  *   <li>Blend uses premultiplied-alpha ({@code GL_ONE / GL_ONE_MINUS_SRC_ALPHA}) when {@code enableBlend} is set.
  *       {@code ULGPUState} does not expose per-draw blend factors or equations.</li>
- *   <li>Scissor rect is used as-is (no Y-flip) because Ultralight already provides it in
- *       FBO space (origin top-left matching the FBO's own coordinate system).</li>
+ *   <li>Scissor rect Y is flipped from Ultralight's top-left origin to OpenGL's
+ *       bottom-left origin: {@code scissorY = viewportHeight - scissorRect.bottom}.</li>
  *   <li>{@code GL_UNPACK_ROW_LENGTH} is set from {@code bitmap.rowBytes() / bytesPerPixel}
  *       before every pixel upload to handle row-padded bitmaps correctly.</li>
  *   <li>A8 textures get a swizzle mask ({@code R=0, G=0, B=0, A=RED}) so glyph coverage
  *       lands in {@code .a} where the fill shader's {@code fillGlyph()} reads it.</li>
  * </ul>
- *
- * @author Ayydxn
  */
-public class LWJGLGPUDemoApp extends LWJGLDemo // FIXME: (Ayydxn) Runs, but you can't see anything being rendered.
+public class LWJGLGPUDemoApp extends LWJGLDemo
 {
     private final OpenGLGPUDriver openGLGPUDriver;
 
@@ -118,6 +116,8 @@ public class LWJGLGPUDemoApp extends LWJGLDemo // FIXME: (Ayydxn) Runs, but you 
 
         this.blitShader = new BlitShader();
         this.fullscreenQuad = new FullscreenQuad();
+
+        glfwSetWindowSizeCallback(this.windowHandle, (window, width, height) -> this.demoView.resize(800, 600));
     }
 
     private static String readShader(java.net.URL base, String filename) throws Exception
@@ -375,16 +375,19 @@ public class LWJGLGPUDemoApp extends LWJGLDemo // FIXME: (Ayydxn) Runs, but you 
             uboStaging.position(UBO_OFF_INTEGER4);
             for (int i = 0; i < 8; i++) uboStaging.putInt(0);
 
-            // Scalar4 (8 floats packed as vec4[2])
+            // Scalar4 (8 floats packed as vec4[2]).
+            // Always write all 8 slots; default to zero for any absent entries.
             uboStaging.position(UBO_OFF_SCALAR4);
-            float[] scalar = state.uniformScalar;
             for (int i = 0; i < 8; i++)
-                uboStaging.putFloat((scalar != null && i < scalar.length) ? scalar[i] : 0f);
+                uboStaging.putFloat((state.uniformScalar != null && i < state.uniformScalar.length)
+                        ? state.uniformScalar[i] : 0f);
 
+            // Vector (8 × vec4 = 32 floats).
+            // Always write all 32 slots; default to zero for any absent entries.
             uboStaging.position(UBO_OFF_VECTOR);
-            float[] vec = state.uniformVector;
             for (int i = 0; i < 32; i++)
-                uboStaging.putFloat((vec != null && i < vec.length) ? vec[i] : 0f);
+                uboStaging.putFloat((state.uniformVector != null && i < state.uniformVector.length)
+                        ? state.uniformVector[i] : 0f);
 
             // ClipData (ivec4: x = clip count)
             uboStaging.position(UBO_OFF_CLIPDATA);
@@ -393,14 +396,15 @@ public class LWJGLGPUDemoApp extends LWJGLDemo // FIXME: (Ayydxn) Runs, but you 
             uboStaging.putInt(0);
             uboStaging.putInt(0);
 
-            // Clip (up to 8 × mat4 = up to 128 floats)
+            // Clip (up to 8 × mat4 = up to 128 floats).
+            // Always write all 128 slots; zero out any clips beyond clipSize.
             uboStaging.position(UBO_OFF_CLIP);
-            if (state.clip != null)
+            for (int i = 0; i < 128; i++)
             {
-                int numClips = Math.min(state.clipSize, 8);
-                int numFloats = Math.min(numClips * 16, state.clip.length);
-                for (int i = 0; i < numFloats; i++)
-                    uboStaging.putFloat(state.clip[i]);
+                boolean hasData = (state.clip != null)
+                        && (i / 16 < state.clipSize)
+                        && (i < state.clip.length);
+                uboStaging.putFloat(hasData ? state.clip[i] : 0f);
             }
 
             uboStaging.rewind();
@@ -425,39 +429,40 @@ public class LWJGLGPUDemoApp extends LWJGLDemo // FIXME: (Ayydxn) Runs, but you 
 
         /**
          * Mirrors {@code ApplyProjection()} from the reference driver.
-         * <p>
+         *
          * Builds a column-major orthographic projection for a viewport of
-         * {@code w x h} pixels (origin top-left, +Y down, matching Ultralight/CSS),
-         * then multiplies it with the column-major object-space matrix {@code t}.
-         * <p>
-         * The ortho matrix is:
+         * {@code w × h} pixels (origin top-left, +Y down, matching Ultralight/CSS),
+         * then computes {@code ortho × t} via a full 4×4 column-major multiply.
+         *
+         * Ortho matrix (column-major, maps pixel-space to GL NDC with Y-flip):
          * <pre>
-         *   [ 2/w   0    0   -1 ]
-         *   [  0  -2/h   0    1 ]
-         *   [  0    0   -1    0 ]
-         *   [  0    0    0    1 ]
+         *   col 0: [ 2/w,  0,  0, 0 ]
+         *   col 1: [   0,-2/h, 0, 0 ]
+         *   col 2: [   0,  0, -1, 0 ]
+         *   col 3: [  -1,  1,  0, 1 ]
          * </pre>
-         * (Y is negated to flip from top-left to OpenGL's bottom-left NDC origin.)
          */
         private static float[] multiplyOrtho(float[] t, int w, int h)
         {
-            // Column-major ortho for pixel-space → NDC, Y-flipped.
-            // Maps x: [0,w]→[-1,1], y: [0,h]→[1,-1]
-            float rw = 2.0f / w, rh = -2.0f / h;
-            // ortho cols: [rw,0,0,0], [0,rh,0,0], [0,0,-1,0], [-1,1,0,1]
+            float rw =  2.0f / w;
+            float rh = -2.0f / h;
+
+            // Ortho matrix in column-major order (index = col*4 + row).
+            // col 0        col 1        col 2        col 3
             float[] ortho = {
-                    rw, 0, 0, 0,
-                    0, rh, 0, 0,
-                    0, 0, -1, 0,
-                    -1, 1, 0, 1
+                rw,  0,  0, 0,   // col 0
+                 0, rh,  0, 0,   // col 1
+                 0,  0, -1, 0,   // col 2
+                -1,  1,  0, 1    // col 3
             };
-            // result = ortho * t, both column-major
+
+            // result = ortho * t, both column-major.
             float[] r = new float[16];
             for (int col = 0; col < 4; col++)
             {
                 for (int row = 0; row < 4; row++)
                 {
-                    float sum = 0;
+                    float sum = 0f;
                     for (int k = 0; k < 4; k++)
                         sum += ortho[k * 4 + row] * t[col * 4 + k];
                     r[col * 4 + row] = sum;
@@ -519,9 +524,12 @@ public class LWJGLGPUDemoApp extends LWJGLDemo // FIXME: (Ayydxn) Runs, but you 
             if (bitmap.isEmpty())
             {
                 // FBO backing texture — allocate empty mutable storage.
+                // Use GL_RGBA (not GL_BGRA) as the external format when data is null;
+                // GL_BGRA with a null pointer is rejected as GL_INVALID_OPERATION on
+                // some strict drivers because BGRA is only valid for actual pixel uploads.
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
                         bitmap.getWidth(), bitmap.getHeight(), 0,
-                        GL_BGRA, GL_UNSIGNED_BYTE, (ByteBuffer) null);
+                        GL_RGBA, GL_UNSIGNED_BYTE, (ByteBuffer) null);
             }
             else
             {
@@ -704,26 +712,29 @@ public class LWJGLGPUDemoApp extends LWJGLDemo // FIXME: (Ayydxn) Runs, but you 
 
             int ebo = glGenBuffers();
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.data(), GL_STATIC_DRAW);
+            // Use DYNAMIC_DRAW: indices can be replaced on every updateGeometry call.
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.data(), GL_DYNAMIC_DRAW);
 
             geometries.put(geometryId, new GeometryData(-1, vbo, ebo,
                     vertices.getFormat() == ULVertexBuffer.Format.QUAD));
         }
 
+        @Override
         public void updateGeometry(int geometryId, ULVertexBuffer vertices, ULIndexBuffer indices)
         {
             GeometryData data = geometries.get(geometryId);
             if (data == null) return;
 
             glBindBuffer(GL_ARRAY_BUFFER, data.vbo);
-            // Use SubData if possible; fall back to Data only on resize
             glBufferData(GL_ARRAY_BUFFER, vertices.getData(), GL_DYNAMIC_DRAW);
 
             ByteBuffer idxBuf = indices.data();
             if (idxBuf != null && idxBuf.hasRemaining())
             {
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, data.ebo);
-                glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, idxBuf); // prefer SubData
+                // glBufferSubData avoids orphaning the existing allocation when the
+                // size has not changed (which is the common case for Ultralight geometry).
+                glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, idxBuf);
             }
         }
 
@@ -816,7 +827,8 @@ public class LWJGLGPUDemoApp extends LWJGLDemo // FIXME: (Ayydxn) Runs, but you 
 
             glDisable(GL_SCISSOR_TEST);
             glDisable(GL_DEPTH_TEST);
-            glDepthFunc(GL_NEVER);
+            glDepthMask(false);   // Ultralight never writes depth; suppress writes to avoid
+            glDepthFunc(GL_NEVER); // corrupting the main framebuffer's depth buffer.
 
             for (ULCommand cmd : currentCommandList)
             {
@@ -830,6 +842,7 @@ public class LWJGLGPUDemoApp extends LWJGLDemo // FIXME: (Ayydxn) Runs, but you 
 
             currentCommandList = new ULCommand[0];
             glDisable(GL_SCISSOR_TEST);
+            glDepthMask(true);   // Restore depth writes for the rest of the frame.
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             glUseProgram(0);
         }
@@ -865,15 +878,16 @@ public class LWJGLGPUDemoApp extends LWJGLDemo // FIXME: (Ayydxn) Runs, but you 
             bindTexture(1, state.texture2Id);
             bindTexture(2, state.texture3Id);
 
-            // Scissor — no Y-flip: Ultralight provides coords in FBO space (top-left origin).
+            // Scissor — Ultralight provides coords in top-left origin (CSS space).
+            // glScissor expects the bottom-left corner in window/FBO space (bottom-left origin),
+            // so we flip: scissorY = viewportHeight - bottom.
             if (state.enableScissor && state.scissorRect != null && !state.scissorRect.isEmpty())
             {
-                int scissorY = state.viewportHeight - state.scissorRect.bottom;
-
                 glEnable(GL_SCISSOR_TEST);
+                int scissorY = state.viewportHeight - state.scissorRect.bottom;
                 glScissor(state.scissorRect.left,
                         scissorY,
-                        state.scissorRect.right - state.scissorRect.left,
+                        state.scissorRect.right  - state.scissorRect.left,
                         state.scissorRect.bottom - state.scissorRect.top);
             }
             else
@@ -1024,6 +1038,7 @@ public class LWJGLGPUDemoApp extends LWJGLDemo // FIXME: (Ayydxn) Runs, but you 
                     1f, -1f, 1f, 0f,
                     -1f, -1f, 0f, 0f,
             };
+
             int[] idx = {0, 1, 2, 2, 3, 0};
 
             vao = glGenVertexArrays();

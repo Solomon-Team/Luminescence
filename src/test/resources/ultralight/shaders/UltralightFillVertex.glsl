@@ -65,6 +65,7 @@ void main()
      * so no transpose is needed.
      */
     gl_Position = Uniforms.Transform * vec4(in_pos, 0.0, 1.0);
+    gl_Position.y = -gl_Position.y;  // Invert Y for OpenGL's coordinate system.
 
     v_color = in_color;
     v_tex   = in_tex;

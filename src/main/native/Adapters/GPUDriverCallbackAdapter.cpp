@@ -66,6 +66,16 @@ namespace Luminescence
             
             m_GPUStateClass = (jclass) Environment->NewGlobalRef(GPUStateClassRef);
             m_GPUStateConstructorID = Environment->GetMethodID(GPUStateClassRef, "<init>", "()V");
+            m_GPUStateViewportWidth = Environment->GetFieldID(m_GPUStateClass, "viewportWidth", "I");
+            m_GPUStateViewportHeight = Environment->GetFieldID(m_GPUStateClass, "viewportHeight", "I");
+            m_GPUStateEnableTexturingField = Environment->GetFieldID(m_GPUStateClass, "enableTexturing", "Z");
+            m_GPUStateEnableBlendField = Environment->GetFieldID(m_GPUStateClass, "enableBlend", "Z");
+            m_GPUStateRenderBufferIDField = Environment->GetFieldID(m_GPUStateClass, "renderBufferId", "I");
+            m_GPUStateTexture1IDField = Environment->GetFieldID(m_GPUStateClass, "texture1Id", "I");
+            m_GPUStateTexture2IDField = Environment->GetFieldID(m_GPUStateClass, "texture2Id", "I");
+            m_GPUStateTexture3IDField = Environment->GetFieldID(m_GPUStateClass, "texture3Id", "I");
+            m_GPUStateClipSizeField = Environment->GetFieldID(m_GPUStateClass, "clipSize", "I");
+            m_GPUStateEnableScissorField = Environment->GetFieldID(m_GPUStateClass, "enableScissor", "Z");
         }
         
         // Cache ULShaderType
@@ -136,7 +146,7 @@ namespace Luminescence
 
     void CGPUDriverCallbackAdapter::BeginSynchronize_Trampoline()
     {
-        const auto* Self = m_ActiveCallbackAdapter;\
+        const auto* Self = m_ActiveCallbackAdapter;
         
         JNIEnv* Environment = Self->GetJNIEnvironment();
         Environment->CallVoidMethod(Self->m_JavaImplementation, Self->m_BeginSynchronizeMethodID);
@@ -308,6 +318,7 @@ namespace Luminescence
     
         const CScopedLocalRef CommandsArray(Environment,Environment->NewObjectArray(static_cast<jsize>(CommandList.size), Self->m_CommandClass, nullptr));
     
+        // FIXME: (Ayydxn) Maybe wrap this with PushLocalFrame and PopLocalFrame for better local reference management?
         for (unsigned int i = 0; i < CommandList.size; ++i)
         {
             const auto& [CommandType, GPUState, GeometryID, IndicesCount, IndicesOffset] = CommandList.commands[i];
@@ -348,28 +359,25 @@ namespace Luminescence
 
     jobject CGPUDriverCallbackAdapter::BuildGPUState(JNIEnv* Environment, const CGPUDriverCallbackAdapter* Self, const ULGPUState& GPUState)
     {
-        const CScopedLocalRef StateObject(Environment, Environment->NewObject(Self->m_GPUStateClass, Self->m_GPUStateConstructorID));
-        
-        auto IntField = [&](const char* Name, jint Value) {
-            Environment->SetIntField(StateObject, Environment->GetFieldID(Self->m_GPUStateClass, Name, "I"), Value);
-        };
-            
-        auto BoolField = [&](const char* Name, jboolean Value) {
-            Environment->SetBooleanField(StateObject, Environment->GetFieldID(Self->m_GPUStateClass, Name, "Z"), Value);
-        };
+        const jobject StateObject = Environment->NewObject(Self->m_GPUStateClass, Self->m_GPUStateConstructorID);
             
         auto FloatArrayField = [&](const char* Name, const float* Data, int Length){
             const jfieldID FieldID = Environment->GetFieldID(Self->m_GPUStateClass, Name, "[F");
-            const CScopedLocalRef Array(Environment, Environment->NewFloatArray(Length));
+            const jfloatArray Array = Environment->NewFloatArray(Length);
+            
             Environment->SetFloatArrayRegion(Array, 0, Length, Data);
-            Environment->SetObjectField(StateObject, FieldID, Array.Get());
+            Environment->SetObjectField(StateObject, FieldID, Array);
+            
+            Environment->DeleteLocalRef(Array);
         };
-    
-        IntField("viewportWidth", static_cast<jint>(GPUState.viewport_width));
-        IntField("viewportHeight", static_cast<jint>(GPUState.viewport_height));
+        
+        Environment->SetIntField(StateObject, Self->m_GPUStateViewportWidth, static_cast<jint>(GPUState.viewport_width));
+        Environment->SetIntField(StateObject, Self->m_GPUStateViewportHeight, static_cast<jint>(GPUState.viewport_height));
+        
         FloatArrayField("transform", GPUState.transform.data, 16);
-        BoolField("enableTexturing", GPUState.enable_texturing);
-        BoolField("enableBlend", GPUState.enable_blend);
+        
+        Environment->SetBooleanField(StateObject, Self->m_GPUStateEnableTexturingField, GPUState.enable_texturing);
+        Environment->SetBooleanField(StateObject, Self->m_GPUStateEnableBlendField, GPUState.enable_blend);
         
         // Shader Type
         const CScopedLocalRef ShaderTypeObj(Environment, Environment->CallStaticObjectMethod(Self->m_ShaderTypeEnumClass,
@@ -377,10 +385,11 @@ namespace Luminescence
         
         Environment->SetObjectField(StateObject, Self->m_GPUStateShaderTypeFieldID, ShaderTypeObj.Get());
         
-        IntField("renderBufferId", static_cast<jint>(GPUState.render_buffer_id));
-        IntField("texture1Id", static_cast<jint>(GPUState.texture_1_id));
-        IntField("texture2Id", static_cast<jint>(GPUState.texture_2_id));
-        IntField("texture3Id", static_cast<jint>(GPUState.texture_3_id));
+        Environment->SetIntField(StateObject, Self->m_GPUStateRenderBufferIDField, static_cast<jint>(GPUState.render_buffer_id));
+        Environment->SetIntField(StateObject, Self->m_GPUStateTexture1IDField, static_cast<jint>(GPUState.texture_1_id));
+        Environment->SetIntField(StateObject, Self->m_GPUStateTexture2IDField, static_cast<jint>(GPUState.texture_2_id));
+        Environment->SetIntField(StateObject, Self->m_GPUStateTexture3IDField, static_cast<jint>(GPUState.texture_3_id));
+        
         FloatArrayField("uniformScalar", GPUState.uniform_scalar, 8);
     
         // uniform_vector: 8 × vec4 → flatten to float[32]
@@ -389,8 +398,8 @@ namespace Luminescence
             std::copy_n(GPUState.uniform_vector[i].value, 4, UniformVecFlat + i * 4);
         
         FloatArrayField("uniformVector", UniformVecFlat, 32);
-    
-        IntField("clipSize", GPUState.clip_size);
+        
+        Environment->SetIntField(StateObject, Self->m_GPUStateClipSizeField, GPUState.clip_size);
     
         // clip: 8 × Matrix4x4 → flatten to float[128]
         float ClipFlat[128];
@@ -398,8 +407,8 @@ namespace Luminescence
             std::copy_n(GPUState.clip[i].data, 16, ClipFlat + i * 16);
         
         FloatArrayField("clip", ClipFlat, 128);
-    
-        BoolField("enableScissor", GPUState.enable_scissor);
+        
+        Environment->SetBooleanField(StateObject, Self->m_GPUStateEnableScissorField, GPUState.enable_scissor);
     
         const CScopedLocalRef Rect(Environment, Environment->NewObject(Self->m_IntRectClass, Self->m_IntRectConstructorID,
                            static_cast<jint>(GPUState.scissor_rect.left),  static_cast<jint>(GPUState.scissor_rect.top),
@@ -408,7 +417,7 @@ namespace Luminescence
         Environment->SetObjectField(StateObject, Environment->GetFieldID(Self->m_GPUStateClass, "scissorRect", "Lme/ayydxn/luminescence/geometry/ULIntRect;"),
             Rect.Get());
     
-        return StateObject.Get();
+        return StateObject;
     }
 
     jobject CGPUDriverCallbackAdapter::BuildVertexBuffer(JNIEnv* Environment, const CGPUDriverCallbackAdapter* Self, const ULVertexBuffer& VertexBuffer)
