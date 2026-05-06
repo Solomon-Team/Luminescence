@@ -7,8 +7,8 @@ public class ULCommand
     public Type type;
     public ULGPUState gpuState;
     public int geometryID;
-    public int indiciesCount;
-    public int indiciesOffset;
+    public int indicesCount;
+    public int indicesOffset;
 
     public enum Type implements NativeEnum
     {

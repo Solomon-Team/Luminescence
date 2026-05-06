@@ -19,4 +19,9 @@ public class ULIntRect
         this.right = right;
         this.bottom = bottom;
     }
+
+    public boolean isEmpty()
+    {
+        return this.left == 0 && this.right == 0 && this.top == 0 && this.bottom == 0;
+    }
 }

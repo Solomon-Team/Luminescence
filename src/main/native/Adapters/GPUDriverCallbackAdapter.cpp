@@ -8,7 +8,7 @@ namespace Luminescence
     CGPUDriverCallbackAdapter::CGPUDriverCallbackAdapter(JNIEnv* Environment, jobject JavaImplementationInstance)
         : ICallbackAdapter(Environment, JavaImplementationInstance)
     {
-        const CScopedLocalRef DriverClass(Environment, Environment->FindClass("me/ayydxn/luminescence/renderer/gpu/ULGPUDriver"));
+        const CScopedLocalRef DriverClass(Environment, Environment->FindClass("me/ayydxn/luminescence/platform/ULGPUDriver"));
 
         m_BeginSynchronizeMethodID = Environment->GetMethodID(DriverClass, "beginSynchronize", "()V");
         m_EndSynchronizeMethodID = Environment->GetMethodID(DriverClass, "endSynchronize", "()V");
@@ -17,15 +17,15 @@ namespace Luminescence
         m_UpdateTextureMethodID = Environment->GetMethodID(DriverClass, "updateTexture", "(ILme/ayydxn/luminescence/bitmap/ULBitmap;)V");
         m_DestroyTextureMethodID = Environment->GetMethodID(DriverClass, "destroyTexture", "(I)V");
         m_NextRenderBufferIdMethodID = Environment->GetMethodID(DriverClass, "nextRenderBufferId", "()I");
-        m_CreateRenderBufferMethodID = Environment->GetMethodID(DriverClass, "createRenderBuffer", "(ILme/ayydxn/luminescence/renderer/gpu/ULGPURenderBuffer;)V");
+        m_CreateRenderBufferMethodID = Environment->GetMethodID(DriverClass, "createRenderBuffer", "(ILme/ayydxn/luminescence/gpu/ULRenderBuffer;)V");
         m_DestroyRenderBufferMethodID = Environment->GetMethodID(DriverClass, "destroyRenderBuffer", "(I)V");
         m_NextGeometryIdMethodID = Environment->GetMethodID(DriverClass, "nextGeometryId", "()I");
-        m_CreateGeometryMethodID = Environment->GetMethodID(DriverClass, "createGeometry", "(ILme/ayydxn/luminescence/renderer/gpu/ULVertexBuffer;"
-                                                    "Lme/ayydxn/luminescence/renderer/gpu/ULIndexBuffer;)V");
-        m_UpdateGeometryMethodID = Environment->GetMethodID(DriverClass, "updateGeometry", "(ILme/ayydxn/luminescence/renderer/gpu/ULVertexBuffer;"
-                                                    "Lme/ayydxn/luminescence/renderer/gpu/ULIndexBuffer;)V");
+        m_CreateGeometryMethodID = Environment->GetMethodID(DriverClass, "createGeometry", "(ILme/ayydxn/luminescence/gpu/ULVertexBuffer;"
+                                                    "Lme/ayydxn/luminescence/gpu/ULIndexBuffer;)V");
+        m_UpdateGeometryMethodID = Environment->GetMethodID(DriverClass, "updateGeometry", "(ILme/ayydxn/luminescence/gpu/ULVertexBuffer;"
+                                                    "Lme/ayydxn/luminescence/gpu/ULIndexBuffer;)V");
         m_DestroyGeometryMethodID = Environment->GetMethodID(DriverClass, "destroyGeometry", "(I)V");
-        m_UpdateCommandListMethodID = Environment->GetMethodID(DriverClass, "updateCommandList", "([Lme/ayydxn/luminescence/renderer/gpu/ULCommand;)V");
+        m_UpdateCommandListMethodID = Environment->GetMethodID(DriverClass, "updateCommandList", "([Lme/ayydxn/luminescence/gpu/ULCommand;)V");
         
         /*---------------------------------------------*/
         /* -- Cache references that we'll use later -- */
@@ -33,36 +33,36 @@ namespace Luminescence
 
         // Cache construction references for ULRenderBuffer
         {
-            const CScopedLocalRef RenderBufferClassRef(Environment, Environment->FindClass("me/ayydxn/luminescence/renderer/gpu/ULRenderBuffer"));
+            const CScopedLocalRef RenderBufferClassRef(Environment, Environment->FindClass("me/ayydxn/luminescence/gpu/ULRenderBuffer"));
             m_RenderBufferClass = (jclass) Environment->NewGlobalRef(RenderBufferClassRef);
-            m_RenderBufferConstructorID = Environment->GetMethodID(RenderBufferClassRef, "<init>", "(IIZZ)V");
+            m_RenderBufferConstructorID = Environment->GetMethodID(RenderBufferClassRef, "<init>", "(IIIZZ)V");
         }
 
         // Cache ULVertexBuffer, ULVertexBuffer.Format, ULIndexBuffer
         {
-            const CScopedLocalRef VertexBufferClassRef(Environment, Environment->FindClass("me/ayydxn/luminescence/renderer/gpu/ULVertexBuffer"));
+            const CScopedLocalRef VertexBufferClassRef(Environment, Environment->FindClass("me/ayydxn/luminescence/gpu/ULVertexBuffer"));
             
             m_VertexBufferClass = (jclass) Environment->NewGlobalRef(VertexBufferClassRef);
             m_VertexBufferConstructorID = Environment->GetMethodID(VertexBufferClassRef, "<init>",
-                "(Lme/ayydxn/luminescence/renderer/gpu/ULVertexBuffer$Format;[B)V");
+                "(Lme/ayydxn/luminescence/gpu/ULVertexBuffer$Format;Ljava/nio/ByteBuffer;)V");
 
-            const CScopedLocalRef FormatClassRef(Environment, Environment->FindClass("me/ayydxn/luminescence/renderer/gpu/ULVertexBuffer$Format"));
+            const CScopedLocalRef FormatClassRef(Environment, Environment->FindClass("me/ayydxn/luminescence/gpu/ULVertexBuffer$Format"));
             
             m_VertexFormatClass = (jclass) Environment->NewGlobalRef(FormatClassRef);
             m_VertexFormatFromNativeID = Environment->GetStaticMethodID(FormatClassRef, "fromNativeValue",
-                "(I)Lme/ayydxn/luminescence/renderer/gpu/ULVertexBuffer$Format;");
+                "(I)Lme/ayydxn/luminescence/gpu/ULVertexBuffer$Format;");
         }
         
         {
-            const CScopedLocalRef IndexBufferClass(Environment, Environment->FindClass("me/ayydxn/luminescence/renderer/gpu/ULIndexBuffer"));
+            const CScopedLocalRef IndexBufferClass(Environment, Environment->FindClass("me/ayydxn/luminescence/gpu/ULIndexBuffer"));
             
             m_IndexBufferClass = (jclass) Environment->NewGlobalRef(IndexBufferClass);
-            m_IndexBufferConstructorID = Environment->GetMethodID(IndexBufferClass, "<init>", "([B)V");
+            m_IndexBufferConstructorID = Environment->GetMethodID(IndexBufferClass, "<init>", "(Ljava/nio/ByteBuffer;)V");
         }
         
         // Cache ULGPUState and ULCommand
         {
-            const CScopedLocalRef GPUStateClassRef(Environment, Environment->FindClass("me/ayydxn/luminescence/renderer/gpu/ULGPUState"));
+            const CScopedLocalRef GPUStateClassRef(Environment, Environment->FindClass("me/ayydxn/luminescence/gpu/ULGPUState"));
             
             m_GPUStateClass = (jclass) Environment->NewGlobalRef(GPUStateClassRef);
             m_GPUStateConstructorID = Environment->GetMethodID(GPUStateClassRef, "<init>", "()V");
@@ -78,7 +78,7 @@ namespace Luminescence
         m_GPUStateShaderTypeFieldID = Environment->GetFieldID(m_GPUStateClass, "shaderType", "Lme/ayydxn/luminescence/gpu/ULShaderType;");
         
         {
-            const CScopedLocalRef CommandClassRef(Environment, Environment->FindClass("me/ayydxn/luminescence/renderer/gpu/ULCommand"));
+            const CScopedLocalRef CommandClassRef(Environment, Environment->FindClass("me/ayydxn/luminescence/gpu/ULCommand"));
             
             m_CommandClass = (jclass) Environment->NewGlobalRef(CommandClassRef);
             m_CommandConstructorID = Environment->GetMethodID(CommandClassRef, "<init>", "()V");
@@ -86,7 +86,7 @@ namespace Luminescence
 
         // Cache IntRect
         {
-            const CScopedLocalRef RectClassRef(Environment, Environment->FindClass("me/ayydxn/luminescence/geometry/IntRect"));
+            const CScopedLocalRef RectClassRef(Environment, Environment->FindClass("me/ayydxn/luminescence/geometry/ULIntRect"));
             
             m_IntRectClass = (jclass) Environment->NewGlobalRef(RectClassRef);
             m_IntRectConstructorID = Environment->GetMethodID(RectClassRef, "<init>", "(IIII)V");
@@ -296,14 +296,14 @@ namespace Luminescence
         JNIEnv* Environment = Self->GetJNIEnvironment();
     
         // Retrieve field/method IDs for ULCommand once per call via the cached class.
-        const jfieldID TypeFieldID = Environment->GetFieldID(Self->m_CommandClass, "type", "Lme/ayydxn/luminescence/renderer/gpu/ULCommand$Type;");
-        const jfieldID StateFieldID = Environment->GetFieldID(Self->m_CommandClass, "gpuState", "Lme/ayydxn/luminescence/renderer/gpu/ULGPUState;");
-        const jfieldID GeometryIDFieldID = Environment->GetFieldID(Self->m_CommandClass, "geometryId",    "I");
-        const jfieldID IndicesCountFieldID = Environment->GetFieldID(Self->m_CommandClass, "indicesCount",  "I");
+        const jfieldID TypeFieldID = Environment->GetFieldID(Self->m_CommandClass, "type", "Lme/ayydxn/luminescence/gpu/ULCommand$Type;");
+        const jfieldID StateFieldID = Environment->GetFieldID(Self->m_CommandClass, "gpuState", "Lme/ayydxn/luminescence/gpu/ULGPUState;");
+        const jfieldID GeometryIDFieldID = Environment->GetFieldID(Self->m_CommandClass, "geometryID", "I");
+        const jfieldID IndicesCountFieldID = Environment->GetFieldID(Self->m_CommandClass, "indicesCount", "I");
         const jfieldID IndicesOffsetFieldID = Environment->GetFieldID(Self->m_CommandClass, "indicesOffset", "I");
     
-        const CScopedLocalRef TypeClass(Environment, Environment->FindClass("me/ayydxn/luminescence/renderer/gpu/ULCommand$Type"));
-        const jmethodID TypeValuesID = Environment->GetStaticMethodID(TypeClass, "values", "()[Lme/ayydxn/luminescence/renderer/gpu/ULCommand$Type;");
+        const CScopedLocalRef TypeClass(Environment, Environment->FindClass("me/ayydxn/luminescence/gpu/ULCommand$Type"));
+        const jmethodID TypeValuesID = Environment->GetStaticMethodID(TypeClass, "values", "()[Lme/ayydxn/luminescence/gpu/ULCommand$Type;");
         const CScopedLocalRef TypeValues(Environment, (jobjectArray) Environment->CallStaticObjectMethod(TypeClass, TypeValuesID));
     
         const CScopedLocalRef CommandsArray(Environment,Environment->NewObjectArray(static_cast<jsize>(CommandList.size), Self->m_CommandClass, nullptr));
@@ -405,7 +405,7 @@ namespace Luminescence
                            static_cast<jint>(GPUState.scissor_rect.left),  static_cast<jint>(GPUState.scissor_rect.top),
                            static_cast<jint>(GPUState.scissor_rect.right), static_cast<jint>(GPUState.scissor_rect.bottom)));
             
-        Environment->SetObjectField(StateObject, Environment->GetFieldID(Self->m_GPUStateClass, "scissorRect", "Lme/ayydxn/luminescence/geometry/IntRect;"),
+        Environment->SetObjectField(StateObject, Environment->GetFieldID(Self->m_GPUStateClass, "scissorRect", "Lme/ayydxn/luminescence/geometry/ULIntRect;"),
             Rect.Get());
     
         return StateObject.Get();
@@ -423,8 +423,8 @@ namespace Luminescence
 
     jobject CGPUDriverCallbackAdapter::BuildIndexBuffer(JNIEnv* Environment, const CGPUDriverCallbackAdapter* Self, const ULIndexBuffer& IndexBuffer)
     {
-        const CScopedLocalRef DataArr(Environment, BytesToJavaArray(Environment, IndexBuffer.data, IndexBuffer.size));
-        
-        return Environment->NewObject(Self->m_IndexBufferClass, Self->m_IndexBufferConstructorID, DataArr.Get());
+        const CScopedLocalRef DirectBuf(Environment, Environment->NewDirectByteBuffer(IndexBuffer.data, IndexBuffer.size));
+
+        return Environment->NewObject(Self->m_IndexBufferClass, Self->m_IndexBufferConstructorID, DirectBuf.Get());
     }
 }

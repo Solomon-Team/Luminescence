@@ -100,7 +100,11 @@ public class ULView
 
     public ULSurface getSurface()
     {
-        return new ULSurface(NativeMethods.nulViewGetSurface(this.handle));
+        long surfaceHandle = NativeMethods.nulViewGetSurface(this.handle);
+        if (surfaceHandle == 0L)
+            throw new NullPointerException("The view's surface is null!");
+
+        return new ULSurface(surfaceHandle);
     }
 
     public void loadHTML(String html)

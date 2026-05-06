@@ -14,9 +14,11 @@ import me.ayydxn.luminescence.geometry.ULRect;
  * <h3>Displaying the Render Target</h3>
  * To display the View's render target, you should:
  * <p>
- * 1. Retrieve the underlying texture via RenderTarget::texture_id().
- * 2. Bind the texture using your custom GPUDriver implementation.
- * 3. Draw a textured quad with the provided UV coordinates (RenderTarget::uv_coords()).
+ * <ul>
+ *     <li>1. Retrieve the underlying texture via RenderTarget::texture_id().</li>
+ *     <li>2. Bind the texture using your custom GPUDriver implementation.</li>
+ *     <li>3. Draw a textured quad with the provided {@link ULRenderTarget#uvCoords UV coordinates}.</li>
+ * </ul>
  *
  * @author Ayydxn
  */

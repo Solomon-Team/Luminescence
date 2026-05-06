@@ -36,6 +36,34 @@ val platform: String = (findProperty("platform") as String?) ?: when {
     else -> "linux-x64"
 }
 
+val lwjglNatives = Pair(
+    System.getProperty("os.name")!!,
+    System.getProperty("os.arch")!!
+).let { (name, arch) ->
+    when {
+        "FreeBSD".equals(name)                                    ->
+            "natives-freebsd"
+        arrayOf("Linux", "SunOS", "Unit").any { name.startsWith(it) } ->
+            if (arrayOf("arm", "aarch64").any { arch.startsWith(it) })
+                "natives-linux${if (arch.contains("64") || arch.startsWith("armv8")) "-arm64" else "-arm32"}"
+            else if (arch.startsWith("ppc"))
+                "natives-linux-ppc64le"
+            else if (arch.startsWith("riscv"))
+                "natives-linux-riscv64"
+            else
+                "natives-linux"
+        arrayOf("Mac OS X", "Darwin").any { name.startsWith(it) }     ->
+            "natives-macos${if (arch.startsWith("aarch64")) "-arm64" else ""}"
+        arrayOf("Windows").any { name.startsWith(it) }                ->
+            if (arch.contains("64"))
+                "natives-windows${if (arch.startsWith("aarch64")) "-arm64" else ""}"
+            else
+                "natives-windows-x86"
+        else                                                                            ->
+            throw Error("Unrecognized or unsupported platform. Please set \"lwjglNatives\" manually")
+    }
+}
+
 repositories {
     mavenCentral()
 }
@@ -51,6 +79,16 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     testImplementation("org.mockito:mockito-core:${rootProject.property("mockito_version").toString()}")
+
+    testImplementation("commons-io:commons-io:2.22.0")
+
+    testImplementation(platform("org.lwjgl:lwjgl-bom:${rootProject.property("lwjgl_version").toString()}"))
+    testImplementation("org.lwjgl:lwjgl")
+    testImplementation("org.lwjgl:lwjgl-glfw")
+    testImplementation("org.lwjgl:lwjgl-opengl")
+    testImplementation("org.lwjgl", "lwjgl", classifier = lwjglNatives)
+    testImplementation("org.lwjgl", "lwjgl-glfw", classifier = lwjglNatives)
+    testImplementation("org.lwjgl", "lwjgl-opengl", classifier = lwjglNatives)
 }
 
 val generateJniHeaders by tasks.registering(JavaCompile::class) {
@@ -132,6 +170,37 @@ tasks.register<JavaExec>("runDemoApp") {
 
     classpath = sourceSets["test"].runtimeClasspath
     mainClass.set("me.ayydxn.luminescence.demo.DemoApp")
+
+    // Automatically set the PATH so Windows finds luminescence_jni.dll and Ultralight.dll
+    val nativeOutDir = file("build/cmake-build/Release").absolutePath
+    val ultralightBin = file("$ultralightSdkLocation/bin").absolutePath
+
+    systemProperty("java.library.path", "$nativeOutDir;$ultralightBin")
+
+    // Also add to environment PATH for Windows-level dependency resolution
+    if (DefaultNativePlatform.getCurrentOperatingSystem().isWindows)
+    {
+        environment("PATH", "${environment["PATH"]};$nativeOutDir;$ultralightBin")
+    }
+    else if (DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX)
+    {
+        environment("DYLD_LIBRARY_PATH", "$nativeOutDir:$ultralightBin")
+    }
+    else if (DefaultNativePlatform.getCurrentOperatingSystem().isLinux)
+    {
+        environment("LD_LIBRARY_PATH", "${environment["LD_LIBRARY_PATH"]}:$nativeOutDir:$ultralightBin")
+    }
+}
+
+tasks.register<JavaExec>("runLWJGLDemoApp") {
+    group = "demos"
+    description = "Runs the JNI test application with the correct library path."
+
+    // Ensure the native library is built before running
+    dependsOn("cmakeConfigure")
+
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("me.ayydxn.luminescence.demo.LWJGLDemoApp")
 
     // Automatically set the PATH so Windows finds luminescence_jni.dll and Ultralight.dll
     val nativeOutDir = file("build/cmake-build/Release").absolutePath
