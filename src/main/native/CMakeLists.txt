@@ -28,7 +28,6 @@ set(UL_LIB_DIR "${ULTRALIGHT_SDK}/lib")   # adjust to SDK layout
 file(GLOB_RECURSE SOURCES "*.cpp" "*.h")
 
 add_library(LuminescenceJNI SHARED ${SOURCES}
-        JNIBridge.cpp
         JNIBridge.cpp)
 
 target_include_directories(LuminescenceJNI PRIVATE
@@ -36,7 +35,7 @@ target_include_directories(LuminescenceJNI PRIVATE
         ${JNI_INCLUDE_DIRS}
         ${JNI_HEADER_DIR}
         ${UL_INCLUDE}
-        include   # project-local helpers
+        include
 )
 
 # (Ayydxn) Thank you, C++ committee for deprecating this stuff and then proceeding to not introduce a modern, cross-platform replacement :D
@@ -50,7 +49,7 @@ target_link_libraries(LuminescenceJNI PRIVATE
         Ultralight
         UltralightCore
         WebCore
-        AppCore          # remove if not using AppCore
+        AppCore
 )
 
 # Export only JNI symbols, keep everything else hidden
@@ -58,3 +57,31 @@ set_target_properties(LuminescenceJNI PROPERTIES
         CXX_VISIBILITY_PRESET hidden
         VISIBILITY_INLINES_HIDDEN ON
 )
+
+# ── Tracy profiler (development only, off by default) ────────────────────────
+# Enable with: cmake ... -DLUMINESCENCE_TRACY=ON
+# Never enable in distributed or CI release builds — Tracy opens a network socket and adds overhead.
+option(LUMINESCENCE_TRACY "Enable Tracy Profiling Instrumentation" OFF)
+
+if(LUMINESCENCE_TRACY)
+    message(STATUS "Tracy profiling enabled — Do NOT ship this build to end users!")
+
+    include(FetchContent)
+    FetchContent_Declare(
+        tracy
+        GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+        GIT_TAG        v0.13.1
+        GIT_SHALLOW    TRUE
+    )
+
+    # Disable Tracy's own examples and documentation targets
+    set(TRACY_ENABLE ON  CACHE BOOL "" FORCE)
+    set(TRACY_ON_DEMAND ON  CACHE BOOL "" FORCE)  # only profile while the GUI is connected
+    set(TRACY_NO_BROADCAST OFF CACHE BOOL "" FORCE)
+    set(TRACY_NO_CODE_TRANSFER OFF CACHE BOOL "" FORCE)
+
+    FetchContent_MakeAvailable(tracy)
+
+    target_link_libraries(LuminescenceJNI PRIVATE TracyClient)
+    target_compile_definitions(LuminescenceJNI PRIVATE TRACY_ENABLE)
+endif()

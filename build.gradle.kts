@@ -30,6 +30,12 @@ val ultralightSdkLocation: String =
         }
     }
 
+// Set tracy_enabled=true in local.properties or pass -Ptracy_enabled=true to enable Tracy profiling.
+// Never enable in CI release builds — Tracy opens a network socket and adds overhead.
+val tracyEnabled: Boolean = (localProperties.getProperty("tracy_enabled") ?: findProperty("tracy_enabled") as String? ?: "false")
+        .trim()
+        .equals("true", ignoreCase = true)
+
 val platform: String = (findProperty("platform") as String?) ?: when {
     DefaultNativePlatform.getCurrentOperatingSystem().isWindows -> "windows-x64"
     DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX -> "macos-x64"
@@ -128,6 +134,7 @@ val cmakeConfigure by tasks.registering(Exec::class) {
         "-DULTRALIGHT_SDK=${ultralightSdkLocation}",
         "-DPLATFORM=${platform}",
         "-DCMAKE_BUILD_TYPE=Release",
+        "-DLUMINESCENCE_TRACY=${if (tracyEnabled) "ON" else "OFF"}",
         "-G", if (DefaultNativePlatform.getCurrentOperatingSystem().isWindows) "Visual Studio 18 2026" else "Unix Makefiles"
     )
 }
