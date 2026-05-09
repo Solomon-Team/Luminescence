@@ -47,7 +47,7 @@ val lwjglNatives = Pair(
     System.getProperty("os.arch")!!
 ).let { (name, arch) ->
     when {
-        "FreeBSD".equals(name)                                    ->
+        "FreeBSD" == name ->
             "natives-freebsd"
         arrayOf("Linux", "SunOS", "Unit").any { name.startsWith(it) } ->
             if (arrayOf("arm", "aarch64").any { arch.startsWith(it) })
