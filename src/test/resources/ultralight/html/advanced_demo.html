@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Luminescence | JS Interop Demo</title>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap');
+
+        :root {
+            --bg:        #080c10;
+            --surface:   #0d1117;
+            --border:    #1c2433;
+            --border-hi: #2d3f55;
+            --text:      #cdd9e5;
+            --text-dim:  #5c7080;
+            --text-hi:   #e6edf3;
+            --accent:    #39d353;
+            --accent-dim:#1a4d28;
+            --warn:      #e3b341;
+            --err:       #f85149;
+            --blue:      #388bfd;
+            --mono:      'IBM Plex Mono', monospace;
+            --sans:      'IBM Plex Sans', sans-serif;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            font-size: 13px;
+            line-height: 1.5;
+            height: 100vh;
+            overflow: hidden;
+            display: grid;
+            grid-template-rows: 40px 1fr;
+            grid-template-columns: 220px 1fr 280px;
+            grid-template-areas:
+                "titlebar titlebar titlebar"
+                "sidebar  main     log";
+        }
+
+        /* ── Titlebar ────────────────────────────────── */
+        .titlebar {
+            grid-area: titlebar;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 12px;
+            user-select: none;
+        }
+        .titlebar-logo {
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--accent);
+            letter-spacing: 0.08em;
+        }
+        .titlebar-sep { width: 1px; height: 16px; background: var(--border); }
+        .titlebar-title {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 0.04em;
+        }
+        .titlebar-badge {
+            margin-left: auto;
+            font-family: var(--mono);
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 2px;
+            background: var(--accent-dim);
+            color: var(--accent);
+            letter-spacing: 0.06em;
+        }
+
+        /* ── Sidebar ─────────────────────────────────── */
+        .sidebar {
+            grid-area: sidebar;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .sidebar-section {
+            padding: 12px 12px 4px;
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text-dim);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 12px;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text-dim);
+            transition: background 0.1s, color 0.1s;
+            border-left: 2px solid transparent;
+        }
+        .nav-item:hover { background: #131c27; color: var(--text); }
+        .nav-item.active {
+            background: #131c27;
+            color: var(--text-hi);
+            border-left-color: var(--accent);
+        }
+        .nav-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--border-hi);
+            flex-shrink: 0;
+        }
+        .nav-item.active .nav-dot { background: var(--accent); }
+        .sidebar-spacer { flex: 1; }
+        .sidebar-footer {
+            padding: 12px;
+            border-top: 1px solid var(--border);
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text-dim);
+        }
+        .sidebar-footer span { color: var(--accent); }
+
+        /* ── Main panels ─────────────────────────────── */
+        .main {
+            grid-area: main;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .main::-webkit-scrollbar { width: 6px; }
+        .main::-webkit-scrollbar-track { background: transparent; }
+        .main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 0.06em;
+        }
+        .panel-header-tag {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 2px;
+            background: #1c2433;
+            color: var(--text-dim);
+        }
+        .panel-body { padding: 16px; }
+
+        /* ── Form controls ───────────────────────────── */
+        .field { display: flex; flex-direction: column; gap: 6px; }
+        .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .field + .field { margin-top: 12px; }
+        label {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text-dim);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        input[type="text"], input[type="number"], select, textarea {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-hi);
+            font-family: var(--mono);
+            font-size: 12px;
+            padding: 7px 10px;
+            outline: none;
+            transition: border-color 0.15s;
+            width: 100%;
+        }
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--blue);
+        }
+        select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235c7080'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+        textarea { resize: vertical; min-height: 72px; font-size: 12px; }
+
+        /* ── Buttons ─────────────────────────────────── */
+        .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+        .btn {
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            padding: 7px 14px;
+            border-radius: 4px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: opacity 0.1s, transform 0.08s, background 0.1s;
+            outline: none;
+            white-space: nowrap;
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn-primary   { background: var(--accent); color: #050a07; border-color: var(--accent); }
+        .btn-secondary { background: transparent; color: var(--text); border-color: var(--border-hi); }
+        .btn-secondary:hover { background: #131c27; }
+        .btn-warn      { background: transparent; color: var(--warn); border-color: var(--warn); }
+        .btn-warn:hover { background: #2a200a; }
+        .btn-danger    { background: transparent; color: var(--err); border-color: var(--err); }
+        .btn-danger:hover { background: #250a0a; }
+        .btn:disabled  { opacity: 0.35; cursor: not-allowed; }
+
+        /* ── Toggle / Checkbox ───────────────────────── */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 9px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .toggle-row:last-child { border-bottom: none; }
+        .toggle-label { font-size: 12px; color: var(--text); }
+        .toggle-sub { font-family: var(--mono); font-size: 10px; color: var(--text-dim); margin-top: 1px; }
+        .toggle {
+            position: relative;
+            width: 36px; height: 20px;
+            flex-shrink: 0;
+        }
+        .toggle input { opacity: 0; width: 0; height: 0; }
+        .toggle-track {
+            position: absolute;
+            inset: 0;
+            background: var(--border-hi);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .toggle input:checked + .toggle-track { background: var(--accent); }
+        .toggle-thumb {
+            position: absolute;
+            top: 3px; left: 3px;
+            width: 14px; height: 14px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+            pointer-events: none;
+        }
+        .toggle input:checked ~ .toggle-thumb { transform: translateX(16px); }
+
+        /* ── Stat tiles ──────────────────────────────── */
+        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .stat-tile {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 12px;
+        }
+        .stat-label { font-family: var(--mono); font-size: 10px; color: var(--text-dim); letter-spacing: 0.08em; }
+        .stat-value { font-family: var(--mono); font-size: 20px; color: var(--text-hi); margin-top: 4px; }
+        .stat-value.accent { color: var(--accent); }
+        .stat-value.warn   { color: var(--warn); }
+        .stat-value.err    { color: var(--err); }
+
+        /* ── Progress bar ────────────────────────────── */
+        .progress-wrap { margin-top: 12px; }
+        .progress-meta { display: flex; justify-content: space-between; margin-bottom: 6px; font-family: var(--mono); font-size: 10px; color: var(--text-dim); }
+        .progress-track { height: 4px; background: var(--border); border-radius: 2px; }
+        .progress-fill { height: 100%; border-radius: 2px; background: var(--accent); transition: width 0.4s cubic-bezier(0.4,0,0.2,1); }
+
+        /* ── Log panel ───────────────────────────────── */
+        .log {
+            grid-area: log;
+            background: var(--bg);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .log-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text-dim);
+            letter-spacing: 0.08em;
+            flex-shrink: 0;
+        }
+        .log-clear {
+            background: none; border: none;
+            color: var(--text-dim); font-family: var(--mono);
+            font-size: 10px; cursor: pointer; padding: 0;
+            letter-spacing: 0.06em;
+        }
+        .log-clear:hover { color: var(--err); }
+        .log-entries {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 0;
+            font-family: var(--mono);
+            font-size: 11px;
+        }
+        .log-entries::-webkit-scrollbar { width: 4px; }
+        .log-entries::-webkit-scrollbar-thumb { background: var(--border); }
+        .log-entry {
+            display: grid;
+            grid-template-columns: 52px 18px 1fr;
+            gap: 4px;
+            align-items: baseline;
+            padding: 3px 12px;
+            line-height: 1.6;
+            animation: fadeIn 0.15s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-2px); } to { opacity: 1; } }
+        .log-entry:hover { background: #0d1117; }
+        .log-time { color: var(--text-dim); font-size: 10px; }
+        .log-icon { text-align: center; }
+        .log-msg { color: var(--text); word-break: break-all; }
+        .log-entry.info  .log-icon { color: var(--blue); }
+        .log-entry.ok    .log-icon { color: var(--accent); }
+        .log-entry.warn  .log-icon { color: var(--warn); }
+        .log-entry.err   .log-icon { color: var(--err); }
+        .log-entry.err   .log-msg  { color: var(--err); }
+        .log-footer {
+            padding: 8px 12px;
+            border-top: 1px solid var(--border);
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text-dim);
+            flex-shrink: 0;
+        }
+        .log-footer span { color: var(--accent); }
+
+        /* ── Range slider ────────────────────────────── */
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .range-row { display: flex; align-items: center; gap: 10px; }
+        .range-val { font-family: var(--mono); font-size: 11px; color: var(--accent); min-width: 28px; text-align: right; }
+    </style>
+</head>
+<body x-data="app()" x-init="init()">
+
+    <!-- Titlebar -->
+    <div class="titlebar">
+        <span class="titlebar-logo">LUMINESCENCE</span>
+        <div class="titlebar-sep"></div>
+        <span class="titlebar-title">JS Interop Control Panel</span>
+        <span class="titlebar-badge" x-text="connected ? 'JAVA BRIDGE ●' : 'NO BRIDGE ○'"></span>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-section">Modules</div>
+        <div class="nav-item active"><div class="nav-dot"></div>Event Bridge</div>
+        <div class="nav-item"><div class="nav-dot"></div>Text Processing</div>
+        <div class="nav-item"><div class="nav-dot"></div>System Config</div>
+        <div class="nav-item"><div class="nav-dot"></div>Batch Runner</div>
+        <div class="sidebar-section" style="margin-top:8px">Status</div>
+        <div class="nav-item"><div class="nav-dot"></div>Runtime Metrics</div>
+        <div class="nav-item"><div class="nav-dot"></div>Error Monitor</div>
+        <div class="sidebar-spacer"></div>
+        <div class="sidebar-footer">
+            Callbacks fired: <span x-text="stats.total"></span><br>
+            Errors: <span x-text="stats.errors"></span>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+
+        <!-- Runtime stats -->
+        <div class="stat-grid">
+            <div class="stat-tile">
+                <div class="stat-label">CALLBACKS FIRED</div>
+                <div class="stat-value accent" x-text="stats.total"></div>
+            </div>
+            <div class="stat-tile">
+                <div class="stat-label">LAST LATENCY</div>
+                <div class="stat-value" x-text="stats.latency + 'ms'"></div>
+            </div>
+            <div class="stat-tile">
+                <div class="stat-label">ERRORS</div>
+                <div class="stat-value" :class="stats.errors > 0 ? 'err' : ''" x-text="stats.errors"></div>
+            </div>
+        </div>
+
+        <!-- Event bridge panel -->
+        <div class="panel">
+            <div class="panel-header">
+                EVENT BRIDGE
+                <span class="panel-header-tag">button callbacks</span>
+            </div>
+            <div class="panel-body">
+                <div class="btn-row">
+                    <button class="btn btn-primary"  @click="fire('onPrimaryAction',   'PRIMARY_ACTION')">Primary Action</button>
+                    <button class="btn btn-secondary" @click="fire('onSecondaryAction', 'SECONDARY_ACTION')">Secondary</button>
+                    <button class="btn btn-warn"      @click="fire('onWarningAction',   'WARNING_ACTION')">Warn</button>
+                    <button class="btn btn-danger"    @click="fire('onDangerAction',    'DANGER_ACTION')">Danger</button>
+                </div>
+                <div class="progress-wrap">
+                    <div class="progress-meta">
+                        <span>CALLBACK THROUGHPUT</span>
+                        <span x-text="Math.min(stats.total, 20) + ' / 20'"></span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" :style="`width: ${Math.min(stats.total / 20 * 100, 100)}%`"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Text input panel -->
+        <div class="panel">
+            <div class="panel-header">
+                TEXT PROCESSING
+                <span class="panel-header-tag">input callbacks</span>
+            </div>
+            <div class="panel-body">
+                <div class="field-row">
+                    <div class="field">
+                        <label>String Input</label>
+                        <input type="text" x-model="textInput" placeholder="Type something..." @keydown.enter="submitText" />
+                    </div>
+                    <div class="field">
+                        <label>Numeric Value</label>
+                        <div class="range-row">
+                            <input type="range" x-model="numInput" min="0" max="100" @change="submitNumber" />
+                            <span class="range-val" x-text="numInput"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="field" style="margin-top:12px">
+                    <label>Multiline Payload</label>
+                    <textarea x-model="textArea" placeholder="Enter multi-line text to pass to Java..."></textarea>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-primary" @click="submitText">Submit Text</button>
+                    <button class="btn btn-secondary" @click="submitPayload">Submit Payload</button>
+                    <button class="btn btn-secondary" @click="textInput=''; textArea=''; log('info','Inputs cleared')">Clear</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- System config panel -->
+        <div class="panel">
+            <div class="panel-header">
+                SYSTEM CONFIG
+                <span class="panel-header-tag">select + toggle callbacks</span>
+            </div>
+            <div class="panel-body">
+                <div class="field-row">
+                    <div class="field">
+                        <label>Render Mode</label>
+                        <select x-model="renderMode" @change="fire('onRenderModeChange', renderMode)">
+                            <option value="CPU_RASTER">CPU Raster</option>
+                            <option value="GPU_ACCELERATED">GPU Accelerated</option>
+                            <option value="HEADLESS">Headless</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Log Level</label>
+                        <select x-model="logLevel" @change="fire('onLogLevelChange', logLevel)">
+                            <option value="TRACE">Trace</option>
+                            <option value="DEBUG">Debug</option>
+                            <option value="INFO">Info</option>
+                            <option value="WARN">Warn</option>
+                            <option value="ERROR">Error</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="margin-top: 14px;">
+                    <div class="toggle-row" @click="toggle('enableGPU')">
+                        <div>
+                            <div class="toggle-label">GPU Acceleration</div>
+                            <div class="toggle-sub">RENDER.GPU_ENABLED</div>
+                        </div>
+                        <label class="toggle" @click.stop>
+                            <input type="checkbox" x-model="flags.enableGPU" @change="fire('onFlagChange', 'GPU:' + flags.enableGPU)">
+                            <div class="toggle-track"></div>
+                            <div class="toggle-thumb"></div>
+                        </label>
+                    </div>
+                    <div class="toggle-row" @click="toggle('verboseLogging')">
+                        <div>
+                            <div class="toggle-label">Verbose Logging</div>
+                            <div class="toggle-sub">LOG.VERBOSE</div>
+                        </div>
+                        <label class="toggle" @click.stop>
+                            <input type="checkbox" x-model="flags.verboseLogging" @change="fire('onFlagChange', 'VERBOSE:' + flags.verboseLogging)">
+                            <div class="toggle-track"></div>
+                            <div class="toggle-thumb"></div>
+                        </label>
+                    </div>
+                    <div class="toggle-row" @click="toggle('hotReload')">
+                        <div>
+                            <div class="toggle-label">Hot Reload</div>
+                            <div class="toggle-sub">DEV.HOT_RELOAD</div>
+                        </div>
+                        <label class="toggle" @click.stop>
+                            <input type="checkbox" x-model="flags.hotReload" @change="fire('onFlagChange', 'HOT_RELOAD:' + flags.hotReload)">
+                            <div class="toggle-track"></div>
+                            <div class="toggle-thumb"></div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Log panel -->
+    <div class="log">
+        <div class="log-header">
+            EVENT LOG
+            <button class="log-clear" @click="entries = []; stats.total = 0; stats.errors = 0">CLEAR</button>
+        </div>
+        <div class="log-entries" x-ref="logEl">
+            <template x-for="e in entries" :key="e.id">
+                <div class="log-entry" :class="e.level">
+                    <span class="log-time" x-text="e.time"></span>
+                    <span class="log-icon" x-text="icons[e.level]"></span>
+                    <span class="log-msg" x-text="e.msg"></span>
+                </div>
+            </template>
+        </div>
+        <div class="log-footer">
+            <span x-text="entries.length"></span> entries &nbsp;·&nbsp; bridge: <span x-text="connected ? 'active' : 'mock'"></span>
+        </div>
+    </div>
+
+<script>
+function app() {
+    return {
+        connected: false,
+        textInput: '',
+        numInput: 50,
+        textArea: '',
+        renderMode: 'CPU_RASTER',
+        logLevel: 'INFO',
+        flags: { enableGPU: false, verboseLogging: false, hotReload: false },
+        entries: [],
+        entryId: 0,
+        stats: { total: 0, latency: 0, errors: 0 },
+        icons: { info: '·', ok: '✓', warn: '!', err: '✕' },
+
+        init() {
+            // Register the Java → JS callback so Java can push messages into the log
+            window.pushLogEntry = (level, msg) => this.log(level, msg);
+
+            // Check whether Java has registered the bridge functions
+            this.connected = typeof window.onPrimaryAction === 'function'
+                          || typeof window.onButtonClick   === 'function';
+
+            this.log('info', 'DOM ready — awaiting Java bridge registration');
+        },
+
+        // Call a named Java-registered function if present, else mock it
+        fire(fnName, payload) {
+            const t0 = performance.now();
+            try {
+                if (typeof window[fnName] === 'function') {
+                    window[fnName](payload);
+                    this.stats.latency = Math.round(performance.now() - t0);
+                    this.log('ok', fnName + '(' + payload + ')');
+                } else {
+                    // No Java function registered — log as mock so you can see the call
+                    this.stats.latency = Math.round(performance.now() - t0);
+                    this.log('warn', '[mock] ' + fnName + '(' + payload + ')');
+                }
+                this.stats.total++;
+                this.connected = typeof window.onPrimaryAction === 'function';
+            } catch (err) {
+                this.stats.errors++;
+                this.stats.total++;
+                this.log('err', fnName + ' threw: ' + err.message);
+            }
+        },
+
+        submitText() {
+            if (!this.textInput.trim()) {
+                this.log('warn', 'submitText called with empty input');
+                return;
+            }
+            this.fire('onTextSubmit', this.textInput);
+        },
+
+        submitNumber() {
+            this.fire('onNumberChange', String(this.numInput));
+        },
+
+        submitPayload() {
+            if (!this.textArea.trim()) {
+                this.log('warn', 'submitPayload called with empty textarea');
+                return;
+            }
+            this.fire('onPayloadSubmit', this.textArea);
+        },
+
+        toggle(flag) {
+            this.flags[flag] = !this.flags[flag];
+            const key = { enableGPU: 'GPU', verboseLogging: 'VERBOSE', hotReload: 'HOT_RELOAD' }[flag];
+            this.fire('onFlagChange', key + ':' + this.flags[flag]);
+        },
+
+        log(level, msg) {
+            const now = new Date();
+            const time = now.toTimeString().slice(0, 8);
+            this.entries.unshift({ id: ++this.entryId, level, msg, time });
+            if (this.entries.length > 200) this.entries.pop();
+        }
+    };
+}
+</script>
+</body>
+</html>

@@ -21,6 +21,7 @@
 
 namespace Luminescence
 {
+    /* -- Ultralight -- */
     bool RegisterUltralightMethods(JNIEnv* Environment);
     bool RegisterConfigMethods(JNIEnv* Environment);
     bool RegisterStringMethods(JNIEnv* Environment);
@@ -34,6 +35,13 @@ namespace Luminescence
     bool RegisterViewMethods(JNIEnv* Environment);
     bool RegisterInputEventMethods(JNIEnv* Environment);
     bool RegisterSurfaceMethods(JNIEnv* Environment);
+    
+    /* -- JavaScriptCore -- */
+    bool RegisterJSValueMethods(JNIEnv* Environment);
+    bool RegisterJSContextMethods(JNIEnv* Environment);
+    bool RegisterJSObjectMethods(JNIEnv* Environment);
+    bool RegisterJSArrayMethods(JNIEnv* Environment);
+    bool RegisterJSFunctionMethods(JNIEnv* Environment);
 
     inline bool RegisterNativeMethods(JNIEnv* Environment, const char* ClassName, const JNINativeMethod* Methods, int MethodsCount)
     {

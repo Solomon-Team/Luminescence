@@ -81,6 +81,7 @@ dependencies {
     testImplementation("org.mockito:mockito-core:${rootProject.property("mockito_version").toString()}")
 
     testImplementation("commons-io:commons-io:2.22.0")
+    testImplementation("com.google.guava:guava:33.6.0-jre")
 
     testImplementation(platform("org.lwjgl:lwjgl-bom:${rootProject.property("lwjgl_version").toString()}"))
     testImplementation("org.lwjgl:lwjgl")

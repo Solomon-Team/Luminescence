@@ -5,6 +5,7 @@ import me.ayydxn.luminescence.config.ULConfig;
 import me.ayydxn.luminescence.console.ULMessageLevel;
 import me.ayydxn.luminescence.console.ULMessageSource;
 import me.ayydxn.luminescence.geometry.ULIntRect;
+import me.ayydxn.luminescence.javascript.JSContext;
 import me.ayydxn.luminescence.platform.ULPlatform;
 import me.ayydxn.luminescence.platform.impl.StandardULFileSystem;
 import me.ayydxn.luminescence.platform.impl.StandardULFontLoader;
@@ -132,9 +133,9 @@ class ULViewTest extends BaseLuminescenceTest
 
         assertDoesNotThrow(() ->
         {
-            try (ULView.JSContext jsContext = view.acquireJSContextLock())
+            try (JSContext jsContext = view.acquireJSContextLock())
             {
-                assertNotEquals(0, jsContext.context(), "Native JSContext handle should be non-zero");
+                assertNotEquals(0, jsContext.getHandle(), "Native JSContext handle should be non-zero");
             }
         });
     }

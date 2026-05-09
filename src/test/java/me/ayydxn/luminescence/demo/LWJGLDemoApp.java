@@ -5,7 +5,7 @@ import me.ayydxn.luminescence.internal.UltralightNativeLoader;
 
 public class LWJGLDemoApp
 {
-    private static final boolean GPU_DEMO = true;
+    private static final boolean GPU_DEMO = false;
 
     public static void main(String[] args) throws Exception
     {

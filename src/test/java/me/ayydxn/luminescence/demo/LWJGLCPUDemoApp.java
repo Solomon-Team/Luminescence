@@ -1,10 +1,15 @@
 package me.ayydxn.luminescence.demo;
 
 import me.ayydxn.luminescence.config.ULConfig;
+import me.ayydxn.luminescence.events.*;
+import me.ayydxn.luminescence.javascript.JSContext;
+import me.ayydxn.luminescence.javascript.JSException;
+import me.ayydxn.luminescence.javascript.JSFunction;
 import me.ayydxn.luminescence.surface.ULBitmapSurface;
 import me.ayydxn.luminescence.surface.ULSurface;
 import me.ayydxn.luminescence.view.ULView;
 import me.ayydxn.luminescence.view.ULViewConfig;
+import me.ayydxn.luminescence.view.ULViewListener;
 import org.apache.commons.io.FileUtils;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.system.MemoryUtil;
@@ -14,33 +19,21 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
-import static org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor;
-import static org.lwjgl.glfw.GLFW.glfwGetVideoMode;
-import static org.lwjgl.opengl.GL11.GL_LINEAR;
-import static org.lwjgl.opengl.GL11.GL_RGBA;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_MAG_FILTER;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_S;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_T;
-import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
-import static org.lwjgl.opengl.GL11.glBindTexture;
-import static org.lwjgl.opengl.GL11.glDeleteTextures;
-import static org.lwjgl.opengl.GL11.glTexImage2D;
-import static org.lwjgl.opengl.GL11.glTexSubImage2D;
+import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.GL_BGRA;
 import static org.lwjgl.opengl.GL12C.GL_CLAMP_TO_EDGE;
 import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
-import static org.lwjgl.opengl.GL20.glAttachShader;
-import static org.lwjgl.opengl.GL20.glCompileShader;
-import static org.lwjgl.opengl.GL20.glCreateProgram;
-import static org.lwjgl.opengl.GL20.glCreateShader;
-import static org.lwjgl.opengl.GL20.glDeleteProgram;
-import static org.lwjgl.opengl.GL20.glDeleteShader;
-import static org.lwjgl.opengl.GL20.glLinkProgram;
-import static org.lwjgl.opengl.GL20.glShaderSource;
-import static org.lwjgl.opengl.GL20.glUseProgram;
+import static org.lwjgl.opengl.GL20.GL_BLEND;
+import static org.lwjgl.opengl.GL20.GL_FLOAT;
+import static org.lwjgl.opengl.GL20.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL20.GL_SRC_ALPHA;
+import static org.lwjgl.opengl.GL20.GL_TRIANGLES;
+import static org.lwjgl.opengl.GL20.GL_UNSIGNED_INT;
+import static org.lwjgl.opengl.GL20.glBlendFunc;
+import static org.lwjgl.opengl.GL20.glDisable;
+import static org.lwjgl.opengl.GL20.glDrawElements;
+import static org.lwjgl.opengl.GL20.glEnable;
 import static org.lwjgl.opengl.GL30.*;
 import static org.lwjgl.opengl.GL45.glCreateTextures;
 import static org.lwjgl.opengl.GL45.glTextureParameteri;
@@ -76,11 +69,11 @@ public class LWJGLCPUDemoApp extends LWJGLDemo
             config.setScrollTimerDelay(1.0d / videoMode.refreshRate());
             config.setAnimationTimerDelay(1.0d / videoMode.refreshRate());
 
-            File demoHTMLFile = new File(resourcesFolderURL.toURI().resolve("ultralight/html/demo.html"));
+            File demoHTMLFile = new File(resourcesFolderURL.toURI().resolve("ultralight/html/advanced_demo.html"));
             this.demoHTML = FileUtils.readFileToString(demoHTMLFile, StandardCharsets.UTF_8);
 
-            this.ultralightVertexShaderFile = new File(resourcesFolderURL.toURI().resolve("ultralight/shaders/UltralightPathVertex.glsl"));
-            this.ultralightFragmentShaderFile = new File(resourcesFolderURL.toURI().resolve("ultralight/shaders/UltralightPathFragment.glsl"));
+            this.ultralightVertexShaderFile = new File(resourcesFolderURL.toURI().resolve("ultralight/shaders/UltralightQuadVertex.glsl"));
+            this.ultralightFragmentShaderFile = new File(resourcesFolderURL.toURI().resolve("ultralight/shaders/UltralightQuadFragment.glsl"));
         }
         catch (Exception exception)
         {
@@ -96,6 +89,75 @@ public class LWJGLCPUDemoApp extends LWJGLDemo
             viewConfig.isAccelerated(false);
 
             this.demoView = new ULView(this.renderer, width, height, viewConfig, null);
+            this.demoView.setListener(new ULViewListener()
+            {
+                @Override
+                public void onDOMReady(long frameID, boolean isMainFrame, String url)
+                {
+                    if (!isMainFrame)
+                        return;
+
+                    try (JSContext context = LWJGLCPUDemoApp.this.demoView.acquireJSContextLock())
+                    {
+                        context.globalObject().setProperty("onPrimaryAction", JSFunction.create(context, "onPrimaryAction", (jsContext, self, args) ->
+                        {
+                            System.out.println("[Java] onPrimaryAction");
+                            return jsContext.makeUndefined();
+                        }));
+                        context.globalObject().setProperty("onSecondaryAction", JSFunction.create(context, "onSecondaryAction", (jsContext, self, args) ->
+                        {
+                            System.out.println("[Java] onSecondaryAction");
+                            return jsContext.makeUndefined();
+                        }));
+                        context.globalObject().setProperty("onWarningAction", JSFunction.create(context, "onWarningAction", (jsContext, self, args) ->
+                        {
+                            System.out.println("[Java] onWarningAction");
+                            return jsContext.makeUndefined();
+                        }));
+                        context.globalObject().setProperty("onDangerAction", JSFunction.create(context, "onDangerAction", (jsContext, self, args) ->
+                        {
+                            System.out.println("[Java] onDangerAction");
+                            return jsContext.makeUndefined();
+                        }));
+                        context.globalObject().setProperty("onTextSubmit", JSFunction.create(context, "onTextSubmit", (jsContext, self, args) ->
+                        {
+                            System.out.println("[Java] onTextSubmit: " + (args.length > 0 ? args[0].toString() : ""));
+                            return jsContext.makeUndefined();
+                        }));
+                        context.globalObject().setProperty("onNumberChange", JSFunction.create(context, "onNumberChange", (jsContext, self, args) ->
+                        {
+                            System.out.println("[Java] onNumberChange: " + (args.length > 0 ? args[0].toString() : ""));
+                            return jsContext.makeUndefined();
+                        }));
+                        context.globalObject().setProperty("onPayloadSubmit", JSFunction.create(context, "onPayloadSubmit", (jsContext, self, args) ->
+                        {
+                            System.out.println("[Java] onPayloadSubmit: " + (args.length > 0 ? args[0].toString() : ""));
+                            return jsContext.makeUndefined();
+                        }));
+                        context.globalObject().setProperty("onRenderModeChange", JSFunction.create(context, "onRenderModeChange", (jsContext, self, args) ->
+                        {
+                            System.out.println("[Java] onRenderModeChange: " + (args.length > 0 ? args[0].toString() : ""));
+                            return jsContext.makeUndefined();
+                        }));
+                        context.globalObject().setProperty("onLogLevelChange", JSFunction.create(context, "onLogLevelChange", (jsContext, self, args) ->
+                        {
+                            System.out.println("[Java] onLogLevelChange: " + (args.length > 0 ? args[0].toString() : ""));
+                            return jsContext.makeUndefined();
+                        }));
+                        context.globalObject().setProperty("onFlagChange", JSFunction.create(context, "onFlagChange", (jsContext, self, args) ->
+                        {
+                            System.out.println("[Java] onFlagChange: " + (args.length > 0 ? args[0].toString() : ""));
+                            return jsContext.makeUndefined();
+                        }));
+
+                        context.evaluate("window.pushLogEntry && window.pushLogEntry('ok', 'Java bridge registered — " + 10 + " functions')");
+                    }
+                    catch (JSException exception)
+                    {
+                        exception.printStackTrace();
+                    }
+                }
+            });
             this.demoView.loadHTML(this.demoHTML);
         }
 
@@ -103,6 +165,102 @@ public class LWJGLCPUDemoApp extends LWJGLDemo
                 FileUtils.readFileToString(this.ultralightFragmentShaderFile, StandardCharsets.UTF_8));
         this.uiTexture = new Texture();
         this.uiQuad = new GLQuad();
+
+        glfwSetKeyCallback(this.windowHandle, (window, key, scancode, action, mods) ->
+        {
+            if (action == GLFW_REPEAT)
+                return;
+
+            KeyEventType type = (action == GLFW_RELEASE) ? KeyEventType.KEY_UP : KeyEventType.RAW_KEY_DOWN;
+
+            try (ULKeyEvent keyEvent = new ULKeyEvent(
+                    type,
+                    this.convertGLFWModifiersToUltralight(mods),
+                    this.convertGLFWKeyToWindowsVK(key), // virtualKeyCode: GLFW keys align with most Windows VK codes, but some need to be remapped.
+                    scancode, // nativeKeyCode
+                    "", // text (handled by CharCallback)
+                    "", // unmodifiedText
+                    false, // isKeypad (can be refined by checking scancodes if needed)
+                    false, // isAutoRepeat
+                    false // isSystemKey
+            ))
+            {
+                this.demoView.fireKeyEvent(keyEvent);
+            }
+        });
+
+        glfwSetCharCallback(windowHandle, (window, codepoint) ->
+        {
+            String text = String.valueOf((char) codepoint);
+
+            try (ULKeyEvent keyEvent = new ULKeyEvent(
+                    KeyEventType.CHAR,
+                    0, // modifiers
+                    0, // virtualKeyCode
+                    0, // nativeKeyCode
+                    text, // The actual character typed
+                    text, // unmodifiedText
+                    false, // isKeypad
+                    false, // isAutoRepeat
+                    false // isSystemKey
+            ))
+            {
+                this.demoView.fireKeyEvent(keyEvent);
+            }
+        });
+
+        glfwSetMouseButtonCallback(this.windowHandle, (window, button, action, mods) ->
+        {
+            MouseButton mouseButton = switch (button)
+            {
+                case GLFW_MOUSE_BUTTON_LEFT -> MouseButton.LEFT;
+                case GLFW_MOUSE_BUTTON_RIGHT -> MouseButton.RIGHT;
+                case GLFW_MOUSE_BUTTON_MIDDLE -> MouseButton.MIDDLE;
+                default -> MouseButton.NONE;
+            };
+
+            MouseEventType eventType = switch (action)
+            {
+                case GLFW_PRESS -> MouseEventType.MOUSE_DOWN;
+                case GLFW_RELEASE -> MouseEventType.MOUSE_UP;
+                default -> null;
+            };
+
+            if (eventType != null)
+            {
+                double[] xPos = new double[1];
+                double[] yPos = new double[1];
+                glfwGetCursorPos(window, xPos, yPos);
+
+                try (ULMouseEvent mouseEvent = new ULMouseEvent(eventType, (int) xPos[0], (int) yPos[0], mouseButton))
+                {
+                    this.demoView.fireMouseEvent(mouseEvent);
+                }
+            }
+        });
+
+        glfwSetCursorPosCallback(this.windowHandle, (window, xPosition, yPosition) ->
+        {
+            try (ULMouseEvent mouseMovedEvent = new ULMouseEvent(MouseEventType.MOUSE_MOVED, (int) xPosition, (int) yPosition, MouseButton.NONE))
+            {
+                this.demoView.fireMouseEvent(mouseMovedEvent);
+            }
+        });
+
+        glfwSetScrollCallback(this.windowHandle, (window, xOffset, yOffset) ->
+        {
+            try (ULScrollEvent scrollEvent = new ULScrollEvent(ScrollEventType.SCROLL_BY_PIXEL, (int) (xOffset * 32), (int) (yOffset * 32)))
+            {
+                this.demoView.fireScrollEvent(scrollEvent);
+            }
+        });
+
+        glfwSetFramebufferSizeCallback(this.windowHandle, (window, width, height) ->
+        {
+            this.demoView.resize(width, height);
+
+            glViewport(0, 0, width, height);
+        });
     }
 
     @Override
@@ -143,6 +301,42 @@ public class LWJGLCPUDemoApp extends LWJGLDemo
         uiTexture.destroy();
         uiShader.destroy();
         uiQuad.destroy();
+    }
+
+    private int convertGLFWKeyToWindowsVK(int glfwKey)
+    {
+        return switch (glfwKey) {
+            case GLFW_KEY_BACKSPACE -> 0x08;
+            case GLFW_KEY_TAB -> 0x09;
+            case GLFW_KEY_ENTER -> 0x0D;
+            case GLFW_KEY_ESCAPE -> 0x1B;
+            case GLFW_KEY_SPACE -> 0x20;
+            case GLFW_KEY_PAGE_UP -> 0x21;
+            case GLFW_KEY_PAGE_DOWN -> 0x22;
+            case GLFW_KEY_END -> 0x23;
+            case GLFW_KEY_HOME -> 0x24;
+            case GLFW_KEY_LEFT -> 0x25;
+            case GLFW_KEY_UP -> 0x26;
+            case GLFW_KEY_RIGHT -> 0x27;
+            case GLFW_KEY_DOWN -> 0x28;
+            case GLFW_KEY_INSERT -> 0x2D;
+            case GLFW_KEY_DELETE -> 0x2E;
+
+            // Standard alphanumeric keys (A-Z, 0-9) usually match 1:1
+            default -> glfwKey;
+        };
+    }
+
+    private int convertGLFWModifiersToUltralight(int glfwMods)
+    {
+        int ulMods = 0;
+
+        if ((glfwMods & GLFW_MOD_ALT) != 0) ulMods |= 1;
+        if ((glfwMods & GLFW_MOD_CONTROL) != 0) ulMods |= 1 << 1;
+        if ((glfwMods & GLFW_MOD_SUPER) != 0) ulMods |= 1 << 2;
+        if ((glfwMods & GLFW_MOD_SHIFT) != 0) ulMods |= 1 << 3;
+
+        return ulMods;
     }
 
     private static final class Shader
@@ -224,7 +418,7 @@ public class LWJGLCPUDemoApp extends LWJGLDemo
         }
     }
 
-    public class GLQuad
+    private static class GLQuad
     {
         private final int vao, vbo, ebo;
         private final int indexCount;
@@ -233,10 +427,10 @@ public class LWJGLCPUDemoApp extends LWJGLDemo
         {
             float[] vertices = {
                     // positions    // texture coords
-                    -0.7f,  0.9f,   0.0f, 0.0f,
-                     0.7f,  0.9f,   1.0f, 0.0f,
-                     0.7f, -0.9f,   1.0f, 1.0f,
-                    -0.7f, -0.9f,   0.0f, 1.0f
+                    -1.0f, 1.0f, 0.0f, 0.0f,
+                    1.0f, 1.0f, 1.0f, 0.0f,
+                    1.0f, -1.0f, 1.0f, 1.0f,
+                    -1.0f, -1.0f, 0.0f, 1.0f
             };
 
             int[] indices = {0, 1, 2, 2, 3, 0};

@@ -4,6 +4,7 @@ import me.ayydxn.luminescence.events.ULKeyEvent;
 import me.ayydxn.luminescence.events.ULMouseEvent;
 import me.ayydxn.luminescence.events.ULScrollEvent;
 import me.ayydxn.luminescence.gpu.ULRenderTarget;
+import me.ayydxn.luminescence.javascript.JSContext;
 import me.ayydxn.luminescence.renderer.ULRenderer;
 import me.ayydxn.luminescence.renderer.ULSession;
 import me.ayydxn.luminescence.surface.ULSurface;
@@ -134,7 +135,7 @@ public class ULView
 
     public JSContext acquireJSContextLock()
     {
-        return new JSContext();
+        return new JSContext(this.handle, NativeMethods.nulViewLockJSContext(this.handle));
     }
 
     public String evaluateScript(String jsString, String[] exception)
@@ -230,27 +231,6 @@ public class ULView
     public void createLocalInspectorView()
     {
         NativeMethods.nulViewCreateLocalInspectorView(this.handle);
-    }
-
-    public final class JSContext implements AutoCloseable
-    {
-        private final long handle;
-
-        public JSContext()
-        {
-            this.handle = ULView.this.lockJSContext();
-        }
-
-        public long context()
-        {
-            return this.handle;
-        }
-
-        @Override
-        public void close() throws Exception
-        {
-            ULView.this.unlockJSContext();
-        }
     }
 
     private static final class NativeMethods
