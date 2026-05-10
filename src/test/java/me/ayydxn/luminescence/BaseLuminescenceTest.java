@@ -12,8 +12,6 @@ public abstract class BaseLuminescenceTest
     @BeforeAll
     static void setup()
     {
-        Path ultralightBinPath = Path.of(System.getProperty("user.dir") + File.separator + "bin");
-
-        UltralightNativeLoader.load(Files.exists(ultralightBinPath) ? ultralightBinPath : null);
+        UltralightNativeLoader.load();
     }
 }

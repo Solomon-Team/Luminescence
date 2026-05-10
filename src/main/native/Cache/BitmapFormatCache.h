@@ -15,12 +15,12 @@ namespace Luminescence
         {
             if (ClassRef)
                 return true;
-            jclass LocalClass = Environment->FindClass("me/ayydxn/luminescence/bitmap/BitmapFormat");
 
+            const CScopedLocalRef LocalClass(Environment, Environment->FindClass("me/ayydxn/luminescence/bitmap/BitmapFormat"));
             if (!LocalClass)
                 return false;
 
-            ClassRef = (jclass)Environment->NewGlobalRef(LocalClass);
+            ClassRef = (jclass) Environment->NewGlobalRef(LocalClass);
             FromNativeMethodID = Environment->GetStaticMethodID(ClassRef, "fromNativeValue", "(I)Lme/ayydxn/luminescence/bitmap/BitmapFormat;");
 
             return ClassRef && FromNativeMethodID;

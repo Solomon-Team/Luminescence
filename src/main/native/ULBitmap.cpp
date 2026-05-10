@@ -1,4 +1,5 @@
-﻿#include "Core/JNIUtilities.h"
+﻿#include "Cache/BitmapCache.h"
+#include "Core/JNIUtilities.h"
 
 #include <Ultralight/CAPI/CAPI_Bitmap.h>
 
@@ -257,5 +258,8 @@ static constexpr JNINativeMethod BitmapMethods[] =
 
 bool Luminescence::RegisterBitmapMethods(JNIEnv* Environment)
 {
+    if (!CBitmapCache::InitializeCache(Environment))
+        return false;
+    
     return RegisterNativeMethods(Environment, "me/ayydxn/luminescence/bitmap/ULBitmap$NativeMethods", JNI_METHODS_AND_COUNT(BitmapMethods));
 }

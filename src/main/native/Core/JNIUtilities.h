@@ -35,6 +35,7 @@ namespace Luminescence
     bool RegisterViewMethods(JNIEnv* Environment);
     bool RegisterInputEventMethods(JNIEnv* Environment);
     bool RegisterSurfaceMethods(JNIEnv* Environment);
+    bool RegisterImageSourceMethods(JNIEnv* Environment);
     
     /* -- JavaScriptCore -- */
     bool RegisterJSValueMethods(JNIEnv* Environment);

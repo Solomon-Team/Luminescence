@@ -2,14 +2,14 @@
 // Created by Ayydxn on 4/6/2026.
 //
 
+#include "Cache/BitmapCache.h"
 #include "Cache/IntRectCache.h"
+#include "Cache/JSCCache.h"
 #include "Cache/RenderTargetCache.h"
 #include "Cache/ViewCache.h"
 #include "Core/JNIUtilities.h"
 
 #include <jni.h>
-
-#include "Cache/JSCCache.h"
 
 #define CALL_REGISTER_METHOD(RegistrationMethod) if (!Luminescence::RegistrationMethod(Environment)) return JNI_ERR; 
 #define CALL_JS_CACHE_REGISTER_METHOD(CacheRegistrationMethod) if (!Luminescence::JavaScript::CacheRegistrationMethod(Environment)) return JNI_ERR; 
@@ -37,6 +37,7 @@ extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* VirtualMachine, void*)
 	CALL_REGISTER_METHOD(RegisterViewMethods)
 	CALL_REGISTER_METHOD(RegisterInputEventMethods)
 	CALL_REGISTER_METHOD(RegisterSurfaceMethods)
+	CALL_REGISTER_METHOD(RegisterImageSourceMethods)
 	
 	/* -- JavaScriptCore -- */
 	CALL_REGISTER_METHOD(RegisterJSValueMethods)
@@ -66,6 +67,7 @@ extern "C" JNIEXPORT void JNI_OnUnload(JavaVM* VirtualMachine, void*)
 	Luminescence::CIntRectCache::ClearCache(Environment);
 	Luminescence::CRenderTargetCache::ClearCache(Environment);
 	Luminescence::CViewCache::ClearCache(Environment);
+	Luminescence::CBitmapCache::ClearCache(Environment);
 	
 	Luminescence::JavaScript::CJSExceptionCache::ClearCache(Environment);
 	Luminescence::JavaScript::CJSValueCache::ClearCache(Environment);
