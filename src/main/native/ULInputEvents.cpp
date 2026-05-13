@@ -1,4 +1,5 @@
 ﻿#include "Core/JNIUtilities.h"
+#include "Core/Profiling.h"
 
 #include <Ultralight/CAPI/CAPI_KeyEvent.h>
 #include <Ultralight/CAPI/CAPI_MouseEvent.h>
@@ -12,6 +13,8 @@
 jlong JNICALL ULCreateKeyEvent_Native(JNIEnv* Environment, jclass, jint EventTypeOrdinal, jint Modifiers, jint VirtualKeyCode, jint NativeKeyCode, jstring Text,
     jstring UnmodifiedText, jboolean bIsKeyPad, jboolean bIsAutoRepeat, jboolean bIsSystemKey)
 {
+    ZoneScoped
+    
     const auto TextChars = Environment->GetStringUTFChars(Text, nullptr);
     const auto UnmodifiedTextChars = Environment->GetStringUTFChars(UnmodifiedText, nullptr);
     
@@ -46,6 +49,8 @@ jlong JNICALL ULCreateKeyEvent_Native(JNIEnv* Environment, jclass, jint EventTyp
  */
 void JNICALL ULDestroyKeyEvent_Native(JNIEnv*, jclass, jlong KeyEventHandle)
 {
+    ZoneScoped
+    
     ulDestroyKeyEvent(reinterpret_cast<ULKeyEvent>(KeyEventHandle));
 }
 
@@ -56,6 +61,8 @@ void JNICALL ULDestroyKeyEvent_Native(JNIEnv*, jclass, jlong KeyEventHandle)
  */
 jlong JNICALL ULCreateMouseEvent_Native(JNIEnv*, jclass, jint EventTypeOrdinal, jint X, jint Y, jint MouseButtonOrdinal)
 {
+    ZoneScoped
+    
     return reinterpret_cast<jlong>(ulCreateMouseEvent(static_cast<ULMouseEventType>(EventTypeOrdinal), X, Y, static_cast<ULMouseButton>(MouseButtonOrdinal)));
 }
 
@@ -66,6 +73,8 @@ jlong JNICALL ULCreateMouseEvent_Native(JNIEnv*, jclass, jint EventTypeOrdinal, 
  */
 void JNICALL ULDestroyMouseEvent_Native(JNIEnv*, jclass, jlong MouseEventHandle)
 {
+    ZoneScoped
+    
     ulDestroyMouseEvent(reinterpret_cast<ULMouseEvent>(MouseEventHandle));
 }
 
@@ -76,6 +85,8 @@ void JNICALL ULDestroyMouseEvent_Native(JNIEnv*, jclass, jlong MouseEventHandle)
  */
 jlong JNICALL ULCreateScrollEvent_Native(JNIEnv*, jclass, jint EventTypeOrdinal, jint DeltaX, jint DeltaY)
 {
+    ZoneScoped
+    
     return reinterpret_cast<jlong>(ulCreateScrollEvent(static_cast<ULScrollEventType>(EventTypeOrdinal), DeltaX, DeltaY));
 }
 
@@ -86,6 +97,8 @@ jlong JNICALL ULCreateScrollEvent_Native(JNIEnv*, jclass, jint EventTypeOrdinal,
  */
 void JNICALL ULDestroyScrollEvent_Native(JNIEnv*, jclass, jlong ScrollEventHandle)
 {
+    ZoneScoped
+    
     ulDestroyScrollEvent(reinterpret_cast<ULScrollEvent>(ScrollEventHandle));
 }
 

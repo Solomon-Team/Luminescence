@@ -5,6 +5,7 @@
 #include "FileSystemCallbackAdapter.h"
 #include "Core/CallbackAdapterRegistry.h"
 #include "Core/JNIUtilities.h"
+#include "Core/Profiling.h"
 #include "Core/ScopedLocalRef.h"
 
 #include <Ultralight/CAPI/CAPI_Buffer.h>
@@ -43,55 +44,73 @@ namespace Luminescence
 
     bool CFileSystemCallbackAdapter::FileExists_Trampoline(ULString Path)
     {
+        ZoneScoped
+        
         const CFileSystemCallbackAdapter* Self = m_ActiveCallbackAdapter;
 
-        JNIEnv* Environment = Self->GetJNIEnvironment();
+        auto [Environment, VirtualMachine, bWasAttached] = Self->AcquireJNIEnvironment();
+        if (!Environment && !Self->m_JavaImplementation)
+            return false;
+        
         const CScopedLocalRef PathStringRef(Environment, ULStringToJavaString(Environment, Path));
-        const jboolean Result = Environment->CallBooleanMethod(Self->m_JavaImplementation, Self->m_FileExistsMethodID,
-                                                               PathStringRef.Get());
-
-        CheckException(Environment);
+        const jboolean Result = Environment->CallBooleanMethod(Self->m_JavaImplementation, Self->m_FileExistsMethodID, PathStringRef.Get());
+        if (Environment->ExceptionCheck())
+            return false;
 
         return Result == JNI_TRUE;
     }
 
     ULString CFileSystemCallbackAdapter::GetFileMimeType_Trampoline(ULString Path)
     {
+        ZoneScoped
+        
         const CFileSystemCallbackAdapter* Self = m_ActiveCallbackAdapter;
 
-        JNIEnv* Env = Self->GetJNIEnvironment();
-        const CScopedLocalRef PathString(Env, ULStringToJavaString(Env, Path));
-        const CScopedLocalRef Result(Env, (jstring) Env->CallObjectMethod(Self->m_JavaImplementation, Self->m_GetFileMimeTypeMethodID, PathString.Get()));
-
-        CheckException(Env);
+        auto [Environment, VirtualMachine, bWasAttached] = Self->AcquireJNIEnvironment();
+        if (!Environment && !Self->m_JavaImplementation)
+            return ulCreateString("");
+        
+        const CScopedLocalRef PathString(Environment, ULStringToJavaString(Environment, Path));
+        const CScopedLocalRef Result(Environment, (jstring) Environment->CallObjectMethod(Self->m_JavaImplementation, Self->m_GetFileMimeTypeMethodID, PathString.Get()));
+        if (Environment->ExceptionCheck())
+            return ulCreateString("");
 
         // Ultralight will call ulDestroyString() on this — return a fresh copy.
-        return Result.Get() ? JavaStringToULString(Env, Result) : ulCreateString("application/unknown");
+        return Result.Get() ? JavaStringToULString(Environment, Result) : ulCreateString("application/unknown");
     }
 
     ULString CFileSystemCallbackAdapter::GetFileCharset_Trampoline(ULString Path)
     {
+        ZoneScoped
+        
         const CFileSystemCallbackAdapter* Self = m_ActiveCallbackAdapter;
 
-        JNIEnv* Environment = Self->GetJNIEnvironment();
+        auto [Environment, VirtualMachine, bWasAttached] = Self->AcquireJNIEnvironment();
+        if (!Environment && !Self->m_JavaImplementation)
+            return ulCreateString("");
+        
         const CScopedLocalRef PathStr(Environment, ULStringToJavaString(Environment, Path));
         const CScopedLocalRef Result(Environment, (jstring) Environment->CallObjectMethod(Self->m_JavaImplementation, Self->m_GetFileCharsetMethodID, PathStr.Get()));
-        CheckException(Environment);
+        if (Environment->ExceptionCheck())
+            return ulCreateString("");
 
         return Result.Get() ? JavaStringToULString(Environment, Result) : ulCreateString("utf-8");
     }
 
     ULBuffer CFileSystemCallbackAdapter::OpenFile_Trampoline(ULString Path)
     {
+        ZoneScoped
+        
         const CFileSystemCallbackAdapter* Self = m_ActiveCallbackAdapter;
-        JNIEnv* Environment = Self->GetJNIEnvironment();
+        
+        auto [Environment, VirtualMachine, bWasAttached] = Self->AcquireJNIEnvironment();
+        if (!Environment && !Self->m_JavaImplementation)
+            return ulCreateBuffer(nullptr, 1, nullptr, nullptr);
 
         const CScopedLocalRef PathString(Environment, ULStringToJavaString(Environment, Path));
-        const CScopedLocalRef ByteArray(Environment,
-            (jbyteArray) Environment->CallObjectMethod(Self->m_JavaImplementation,
-                                                       Self->m_OpenFileMethodID,
-                                                       PathString.Get()));
-        CheckException(Environment);
+        const CScopedLocalRef ByteArray(Environment, (jbyteArray) Environment->CallObjectMethod(Self->m_JavaImplementation, Self->m_OpenFileMethodID, PathString.Get()));
+        if (Environment->ExceptionCheck())
+            return nullptr;
 
         if (!ByteArray.Get())
             return nullptr;

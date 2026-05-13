@@ -1,5 +1,6 @@
 ﻿#include "Cache/RectCache.h"
 #include "Core/JNIUtilities.h"
+#include "Core/Profiling.h"
 
 #include <Ultralight/CAPI/CAPI_ImageSource.h>
 
@@ -14,6 +15,8 @@ using namespace Luminescence;
  */
 jlong JNICALL ULCreateImageSourceFromTexture_Native(JNIEnv* Environment, jclass, jint Width, jint Height, jint TextureID, jobject TextureUVInstance, jobject BitmapInstance)
 {
+    ZoneScoped
+    
     const ULRect TextureUV = TextureUVInstance != nullptr ? CRectCache::GetNativeHandle(Environment, TextureUVInstance) :
         ULRect { .left = 0.0f, .top = 0.0f, .right = 1.0f, .bottom = 1.0f }; // Safe defaults if null gets passed for the texture UV parameter.
     
@@ -30,10 +33,10 @@ jlong JNICALL ULCreateImageSourceFromTexture_Native(JNIEnv* Environment, jclass,
  * Method:    nulCreateImageSourceFromBitmap
  * Signature: (Lme/ayydxn/luminescence/bitmap/ULBitmap;)J
  */
-#include <iostream>
-
 jlong JNICALL ULCreateImageSourceFromBitmap_Native(JNIEnv* Environment, jclass, jobject BitmapInstance)
 {
+    ZoneScoped
+    
     const auto Bitmap = CBitmapCache::GetNativeHandle(Environment, BitmapInstance);
     
     return reinterpret_cast<jlong>(ulCreateImageSourceFromBitmap(Bitmap));
@@ -46,6 +49,8 @@ jlong JNICALL ULCreateImageSourceFromBitmap_Native(JNIEnv* Environment, jclass, 
  */
 void JNICALL ULDestroyImageSource_Native(JNIEnv*, jclass, jlong ImageSourceHandle)
 {
+    ZoneScoped
+    
     ulDestroyImageSource(reinterpret_cast<ULImageSource>(ImageSourceHandle));
 }
 
@@ -56,6 +61,8 @@ void JNICALL ULDestroyImageSource_Native(JNIEnv*, jclass, jlong ImageSourceHandl
  */
 void JNICALL ULImageSourceInvalidate_Native(JNIEnv*, jclass, jlong ImageSourceHandle)
 {
+    ZoneScoped
+    
     ulImageSourceInvalidate(reinterpret_cast<ULImageSource>(ImageSourceHandle));
 }
 
@@ -66,6 +73,8 @@ void JNICALL ULImageSourceInvalidate_Native(JNIEnv*, jclass, jlong ImageSourceHa
  */
 void JNICALL ULImageSourceProviderAddImageSource_Native(JNIEnv* Environment, jclass, jstring ImageSourceID, jlong ImageSourceHandle)
 {
+    ZoneScoped
+    
     const auto ImageSource = reinterpret_cast<ULImageSource>(ImageSourceHandle);
     const auto IDChars = Environment->GetStringUTFChars(ImageSourceID, nullptr);
     const auto IDString = ulCreateString(IDChars);
@@ -83,6 +92,8 @@ void JNICALL ULImageSourceProviderAddImageSource_Native(JNIEnv* Environment, jcl
  */
 void JNICALL ULImageSourceProviderRemoveImageSource_Native(JNIEnv* Environment, jclass, jstring ImageSourceID)
 {
+    ZoneScoped
+    
     const auto IDChars = Environment->GetStringUTFChars(ImageSourceID, nullptr);
     const auto IDString = ulCreateString(IDChars);
     

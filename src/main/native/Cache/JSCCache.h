@@ -253,4 +253,31 @@ namespace Luminescence::JavaScript
     private:
         inline static bool bIsInitialized = false;
     };
+    
+    struct CStringCache
+    {
+        inline static jclass ClassRef = nullptr;
+
+        static bool InitializeCache(JNIEnv* Environment)
+        {
+            if (ClassRef)
+                return true;
+
+            const CScopedLocalRef Class(Environment, Environment->FindClass("java/lang/String"));
+            if (!Class)
+                return false;
+            
+            ClassRef = static_cast<jclass>(Environment->NewGlobalRef(Class));
+            
+            return ClassRef != nullptr;
+        }
+
+        static void ClearCache(JNIEnv* Env)
+        {
+            if (ClassRef)
+                Env->DeleteGlobalRef(ClassRef);
+            
+            ClassRef = nullptr;
+        }
+    };
 }

@@ -143,8 +143,7 @@ namespace
     {
         const JSPropertyNameArrayRef Names = JSObjectCopyPropertyNames(ToContextRef(ContextHandle), ToObjectRef(ObjectHandle));
         const size_t Count = JSPropertyNameArrayGetCount(Names);
-        const jclass StringClass = Environment->FindClass("java/lang/String");
-        const jobjectArray Result = Environment->NewObjectArray(static_cast<jsize>(Count), StringClass, nullptr);
+        const jobjectArray Result = Environment->NewObjectArray(static_cast<jsize>(Count), CStringCache::ClassRef, nullptr);
         
         for (size_t Index = 0; Index < Count; ++Index)
         {

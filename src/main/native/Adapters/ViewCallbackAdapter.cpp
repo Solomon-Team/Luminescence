@@ -1,6 +1,7 @@
 #include "ViewCallbackAdapter.h"
 #include "Cache/IntRectCache.h"
 #include "Cache/ViewCache.h"
+#include "Core/Profiling.h"
 #include "Core/ScopedLocalRef.h"
 
 namespace Luminescence
@@ -10,7 +11,9 @@ namespace Luminescence
 
 	void CViewCallbackAdapter::OnChangeTitle(ULString Title) const
 	{
-		JNIEnv* Environment = GetJNIEnvironment();
+		ZoneScoped
+		
+		auto [Environment, VirtualMachine, bWasAttached] = AcquireJNIEnvironment();
 		if (!Environment || !m_JavaImplementation)
 			return;
 
@@ -20,7 +23,9 @@ namespace Luminescence
 
 	void CViewCallbackAdapter::OnChangeURL(ULString URL) const
 	{
-		JNIEnv* Environment = GetJNIEnvironment();
+		ZoneScoped
+		
+		auto [Environment, VirtualMachine, bWasAttached] = AcquireJNIEnvironment();
 		if (!Environment || !m_JavaImplementation)
 			return;
 
@@ -30,7 +35,9 @@ namespace Luminescence
 
 	void CViewCallbackAdapter::OnTooltipChange(ULString URL) const
 	{
-		JNIEnv* Environment = GetJNIEnvironment();
+		ZoneScoped
+		
+		auto [Environment, VirtualMachine, bWasAttached] = AcquireJNIEnvironment();
 		if (!Environment || !m_JavaImplementation)
 			return;
 		
@@ -40,7 +47,9 @@ namespace Luminescence
 
 	void CViewCallbackAdapter::OnCursorChange(ULCursor Cursor) const
 	{
-		JNIEnv* Environment = GetJNIEnvironment();
+		ZoneScoped
+		
+		auto [Environment, VirtualMachine, bWasAttached] = AcquireJNIEnvironment();
 		if (!Environment || !m_JavaImplementation)
 			return;
 
@@ -51,7 +60,9 @@ namespace Luminescence
 
 	void CViewCallbackAdapter::OnConsoleMessageAdded(ULMessageSource Source, ULMessageLevel Level, ULString Message, unsigned int LineNumber, unsigned int ColumnNumber, ULString SourceID) const
 	{
-		JNIEnv* Environment = GetJNIEnvironment();
+		ZoneScoped
+		
+		auto [Environment, VirtualMachine, bWasAttached] = AcquireJNIEnvironment();
 		if (!Environment || !m_JavaImplementation)
 			return;
 
@@ -73,7 +84,9 @@ namespace Luminescence
 
 	ULView CViewCallbackAdapter::OnChildViewCreated(ULString OpenerURL, ULString TargetURL, bool bIsPopup, ULIntRect PopupRect) const
 	{
-		JNIEnv* Environment = GetJNIEnvironment();
+		ZoneScoped
+		
+		auto [Environment, VirtualMachine, bWasAttached] = AcquireJNIEnvironment();
     	if (!Environment || !m_JavaImplementation)
     	    return nullptr;
 		
@@ -96,7 +109,9 @@ namespace Luminescence
 
 	ULView CViewCallbackAdapter::OnInspectorViewCreated(bool bIsLocal, ULString InspectedURL) const
 	{
-		JNIEnv* Environment = GetJNIEnvironment();
+		ZoneScoped
+		
+		auto [Environment, VirtualMachine, bWasAttached] = AcquireJNIEnvironment();
 		if (!Environment || !m_JavaImplementation)
 			return nullptr;
 
@@ -117,7 +132,9 @@ namespace Luminescence
 
 	void CViewCallbackAdapter::OnLoadingBegin(unsigned long long FrameID, bool bIsMainFrame, ULString URL) const
 	{
-		JNIEnv* Environment = GetJNIEnvironment();
+		ZoneScoped
+		
+		auto [Environment, VirtualMachine, bWasAttached] = AcquireJNIEnvironment();
 		if (!Environment || !m_JavaImplementation)
 			return;
 		
@@ -129,7 +146,9 @@ namespace Luminescence
 
 	void CViewCallbackAdapter::OnLoadingFinish(unsigned long long FrameID, bool bIsMainFrame, ULString URL) const
 	{
-		JNIEnv* Environment = GetJNIEnvironment();
+		ZoneScoped
+		
+		auto [Environment, VirtualMachine, bWasAttached] = AcquireJNIEnvironment();
 		if (!Environment || !m_JavaImplementation)
 			return;
 		
@@ -141,7 +160,9 @@ namespace Luminescence
 
 	void CViewCallbackAdapter::OnLoadingFail(unsigned long long FrameID, bool bIsMainFrame, ULString URL, ULString Description, ULString ErrorDomain, int ErrorCode) const
 	{
-	    JNIEnv* Environment = GetJNIEnvironment();
+		ZoneScoped
+		
+	    auto [Environment, VirtualMachine, bWasAttached] = AcquireJNIEnvironment();
 	    if (!Environment || !m_JavaImplementation)
 	        return;
 	
@@ -155,7 +176,9 @@ namespace Luminescence
 	
 	void CViewCallbackAdapter::OnWindowObjectReady(unsigned long long FrameID, bool bIsMainFrame, ULString URL) const
 	{
-	    JNIEnv* Environment = GetJNIEnvironment();
+		ZoneScoped
+		
+	    auto [Environment, VirtualMachine, bWasAttached] = AcquireJNIEnvironment();
 	    if (!Environment || !m_JavaImplementation)
 	        return;
 	
@@ -167,7 +190,9 @@ namespace Luminescence
 	
 	void CViewCallbackAdapter::OnDOMReady(unsigned long long FrameID, bool bIsMainFrame, ULString URL) const
 	{
-	    JNIEnv* Environment = GetJNIEnvironment();
+		ZoneScoped
+		
+	    auto [Environment, VirtualMachine, bWasAttached] = AcquireJNIEnvironment();
 	    if (!Environment || !m_JavaImplementation)
 	        return;
 	
@@ -179,7 +204,9 @@ namespace Luminescence
 	
 	void CViewCallbackAdapter::OnUpdateHistory() const
 	{
-	    JNIEnv* Environment = GetJNIEnvironment();
+		ZoneScoped
+		
+	    auto [Environment, VirtualMachine, bWasAttached] = AcquireJNIEnvironment();
 	    if (!Environment || !m_JavaImplementation)
 	        return;
 	

@@ -1,6 +1,7 @@
 #include "GPUDriverCallbackAdapter.h"
 #include "Core/CallbackAdapterRegistry.h"
 #include "Core/JNIUtilities.h"
+#include "Core/Profiling.h"
 #include "Core/ScopedLocalRef.h"
 
 namespace Luminescence
@@ -107,7 +108,7 @@ namespace Luminescence
 
     CGPUDriverCallbackAdapter::~CGPUDriverCallbackAdapter()
     {
-        if (JNIEnv* Environment = GetJNIEnvironment())
+        if (auto [Environment, VirtualMachine, bWasAttached] = AcquireJNIEnvironment(); Environment)
         {
             Environment->DeleteGlobalRef(m_RenderBufferClass);
             Environment->DeleteGlobalRef(m_VertexBufferClass);
@@ -146,164 +147,226 @@ namespace Luminescence
 
     void CGPUDriverCallbackAdapter::BeginSynchronize_Trampoline()
     {
+        ZoneScoped
+        
         const auto* Self = m_ActiveCallbackAdapter;
         
-        JNIEnv* Environment = Self->GetJNIEnvironment();
-        Environment->CallVoidMethod(Self->m_JavaImplementation, Self->m_BeginSynchronizeMethodID);
+        auto [Environment, VirtualMachine, bWasAttached] = Self->AcquireJNIEnvironment();
+        if (!Environment && !Self->m_JavaImplementation)
+            return;
         
-        CheckException(Environment);
+        Environment->CallVoidMethod(Self->m_JavaImplementation, Self->m_BeginSynchronizeMethodID);
+        Environment->ExceptionCheck();
     }
 
     void CGPUDriverCallbackAdapter::EndSynchronize_Trampoline()
     {
+        ZoneScoped
+        
         const auto* Self = m_ActiveCallbackAdapter;
         
-        JNIEnv* Environment = Self->GetJNIEnvironment();
-        Environment->CallVoidMethod(Self->m_JavaImplementation, Self->m_EndSynchronizeMethodID);
+        auto [Environment, VirtualMachine, bWasAttached] = Self->AcquireJNIEnvironment();
+        if (!Environment && !Self->m_JavaImplementation)
+            return;
         
-        CheckException(Environment);
+        Environment->CallVoidMethod(Self->m_JavaImplementation, Self->m_EndSynchronizeMethodID);
+        Environment->ExceptionCheck();
     }
 
     unsigned int CGPUDriverCallbackAdapter::NextTextureID_Trampoline()
     {
+        ZoneScoped
+        
         const auto* Self = m_ActiveCallbackAdapter;
         
-        JNIEnv* Environment = Self->GetJNIEnvironment();
-        const auto Result = static_cast<unsigned int>(Environment->CallIntMethod(Self->m_JavaImplementation, Self->m_NextTextureIdMethodID));
+        auto [Environment, VirtualMachine, bWasAttached] = Self->AcquireJNIEnvironment();
+        if (!Environment && !Self->m_JavaImplementation)
+            return static_cast<unsigned int>(-1);
         
-        CheckException(Environment);
+        const auto Result = static_cast<unsigned int>(Environment->CallIntMethod(Self->m_JavaImplementation, Self->m_NextTextureIdMethodID));
+        if (Environment->ExceptionCheck())
+             return static_cast<unsigned int>(-1);
         
         return Result;
     }
 
     void CGPUDriverCallbackAdapter::CreateTexture_Trampoline(unsigned int TextureID, ULBitmap Bitmap)
     {
+        ZoneScoped
+        
         const auto* Self = m_ActiveCallbackAdapter;
-        JNIEnv* Environment = Self->GetJNIEnvironment();
+        
+        auto [Environment, VirtualMachine, bWasAttached] = Self->AcquireJNIEnvironment();
+        if (!Environment && !Self->m_JavaImplementation)
+            return;
         
         const CScopedLocalRef BitmapClass(Environment, Environment->FindClass("me/ayydxn/luminescence/bitmap/ULBitmap"));
         const jmethodID BitmapConstructorID = Environment->GetMethodID(BitmapClass, "<init>", "(J)V");
         const CScopedLocalRef BitmapObject(Environment, Environment->NewObject(BitmapClass, BitmapConstructorID, reinterpret_cast<jlong>(Bitmap)));
 
         Environment->CallVoidMethod(Self->m_JavaImplementation, Self->m_CreateTextureMethodID, static_cast<jint>(TextureID), BitmapObject.Get());
-        
-        CheckException(Environment);
+        Environment->ExceptionCheck();
     }
 
     void CGPUDriverCallbackAdapter::UpdateTexture_Trampoline(unsigned int TextureID, ULBitmap Bitmap)
     {
+        ZoneScoped
+        
         const auto* Self = m_ActiveCallbackAdapter;
-        JNIEnv* Environment = Self->GetJNIEnvironment();
-
+        
+        auto [Environment, VirtualMachine, bWasAttached] = Self->AcquireJNIEnvironment();
+        if (!Environment && !Self->m_JavaImplementation)
+            return;
+        
         const CScopedLocalRef BitmapClass(Environment, Environment->FindClass("me/ayydxn/luminescence/bitmap/ULBitmap"));
         const jmethodID BitmapConstructorID = Environment->GetMethodID(BitmapClass, "<init>", "(J)V");
         const CScopedLocalRef BitmapObj(Environment, Environment->NewObject(BitmapClass, BitmapConstructorID, reinterpret_cast<jlong>(Bitmap)));
 
         Environment->CallVoidMethod(Self->m_JavaImplementation, Self->m_UpdateTextureMethodID, static_cast<jint>(TextureID), BitmapObj.Get());
-        
-        CheckException(Environment);
+        Environment->ExceptionCheck();
     }
 
     void CGPUDriverCallbackAdapter::DestroyTexture_Trampoline(unsigned int TextureID)
     {
+        ZoneScoped
+        
         const auto* Self = m_ActiveCallbackAdapter;
         
-        JNIEnv* Environment = Self->GetJNIEnvironment();
-        Environment->CallVoidMethod(Self->m_JavaImplementation, Self->m_DestroyTextureMethodID, static_cast<jint>(TextureID));
+        auto [Environment, VirtualMachine, bWasAttached] = Self->AcquireJNIEnvironment();
+        if (!Environment && !Self->m_JavaImplementation)
+            return;
         
-        CheckException(Environment);
+        Environment->CallVoidMethod(Self->m_JavaImplementation, Self->m_DestroyTextureMethodID, static_cast<jint>(TextureID));
+        Environment->ExceptionCheck();
     }
 
     unsigned int CGPUDriverCallbackAdapter::NextRenderBufferID_Trampoline()
     {
+        ZoneScoped
+        
         const auto* Self = m_ActiveCallbackAdapter;
         
-        JNIEnv* Environment = Self->GetJNIEnvironment();
-        const auto Result = static_cast<unsigned int>(Environment->CallIntMethod(Self->m_JavaImplementation, Self->m_NextRenderBufferIdMethodID));
+        auto [Environment, VirtualMachine, bWasAttached] = Self->AcquireJNIEnvironment();
+        if (!Environment && !Self->m_JavaImplementation)
+            return static_cast<unsigned int>(-1);
         
-        CheckException(Environment);
+        const auto Result = static_cast<unsigned int>(Environment->CallIntMethod(Self->m_JavaImplementation, Self->m_NextRenderBufferIdMethodID));
+        if (Environment->ExceptionCheck())
+            return static_cast<unsigned int>(-1);
         
         return Result;
     }
 
     void CGPUDriverCallbackAdapter::CreateRenderBuffer_Trampoline(unsigned int RenderBufferID, ULRenderBuffer RenderBuffer)
     {
+        ZoneScoped
+        
         const auto* Self = m_ActiveCallbackAdapter;
-        JNIEnv* Environment = Self->GetJNIEnvironment();
+        
+        auto [Environment, VirtualMachine, bWasAttached] = Self->AcquireJNIEnvironment();
+        if (!Environment && !Self->m_JavaImplementation)
+            return;
 
         const CScopedLocalRef RenderBufferObject(Environment, Environment->NewObject(Self->m_RenderBufferClass, Self->m_RenderBufferConstructorID,
             static_cast<jint>(RenderBuffer.texture_id), static_cast<jint>(RenderBuffer.width), static_cast<jint>(RenderBuffer.height),
             static_cast<jboolean>(RenderBuffer.has_stencil_buffer), static_cast<jboolean>(RenderBuffer.has_depth_buffer)));
 
         Environment->CallVoidMethod(Self->m_JavaImplementation, Self->m_CreateRenderBufferMethodID, static_cast<jint>(RenderBufferID), RenderBufferObject.Get());
-        
-        CheckException(Environment);
+        Environment->ExceptionCheck();
     }
 
     void CGPUDriverCallbackAdapter::DestroyRenderBuffer_Trampoline(unsigned int RenderBufferID)
     {
+        ZoneScoped
+        
         const auto* Self = m_ActiveCallbackAdapter;
         
-        JNIEnv* Environment = Self->GetJNIEnvironment();
-        Environment->CallVoidMethod(Self->m_JavaImplementation, Self->m_DestroyRenderBufferMethodID, static_cast<jint>(RenderBufferID));
+        auto [Environment, VirtualMachine, bWasAttached] = Self->AcquireJNIEnvironment();
+        if (!Environment && !Self->m_JavaImplementation)
+            return;
         
-        CheckException(Environment);
+        Environment->CallVoidMethod(Self->m_JavaImplementation, Self->m_DestroyRenderBufferMethodID, static_cast<jint>(RenderBufferID));
+        Environment->ExceptionCheck();
     }
 
     unsigned int CGPUDriverCallbackAdapter::NextGeometryID_Trampoline()
     {
+        ZoneScoped
+        
         const auto* Self = m_ActiveCallbackAdapter;
         
-        JNIEnv* Environment = Self->GetJNIEnvironment();
-        const auto Result = static_cast<unsigned int>(Environment->CallIntMethod(Self->m_JavaImplementation, Self->m_NextGeometryIdMethodID));
+        auto [Environment, VirtualMachine, bWasAttached] = Self->AcquireJNIEnvironment();
+        if (!Environment && !Self->m_JavaImplementation)
+            return static_cast<unsigned int>(-1);
         
-        CheckException(Environment);
+        const auto Result = static_cast<unsigned int>(Environment->CallIntMethod(Self->m_JavaImplementation, Self->m_NextGeometryIdMethodID));
+        if (Environment->ExceptionCheck())
+            return static_cast<unsigned int>(-1);
         
         return Result;
     }
 
     void CGPUDriverCallbackAdapter::CreateGeometry_Trampoline(unsigned int GeometryID, ULVertexBuffer Vertices, ULIndexBuffer Indices)
     {
+        ZoneScoped
+        
         const auto* Self = m_ActiveCallbackAdapter;
-        JNIEnv* Environment = Self->GetJNIEnvironment();
-
+        
+        auto [Environment, VirtualMachine, bWasAttached] = Self->AcquireJNIEnvironment();
+        if (!Environment && !Self->m_JavaImplementation)
+            return;
+        
         const CScopedLocalRef VertexBufferObject(Environment, BuildVertexBuffer(Environment, Self, Vertices));
         const CScopedLocalRef IndexBufferObject(Environment, BuildIndexBuffer(Environment, Self, Indices));
 
         Environment->CallVoidMethod(Self->m_JavaImplementation, Self->m_CreateGeometryMethodID, static_cast<jint>(GeometryID), VertexBufferObject.Get(),
             IndexBufferObject.Get());
         
-        CheckException(Environment);
+        Environment->ExceptionCheck();
     }
 
     void CGPUDriverCallbackAdapter::UpdateGeometry_Trampoline(unsigned int GeometryID, ULVertexBuffer Vertices, ULIndexBuffer Indices)
     {
+        ZoneScoped
+        
         const auto* Self = m_ActiveCallbackAdapter;
-        JNIEnv* Environment = Self->GetJNIEnvironment();
-
+        
+        auto [Environment, VirtualMachine, bWasAttached] = Self->AcquireJNIEnvironment();
+        if (!Environment && !Self->m_JavaImplementation)
+            return;
+        
         const CScopedLocalRef VertexBufferObject(Environment, BuildVertexBuffer(Environment, Self, Vertices));
         const CScopedLocalRef IndexBufferObject(Environment, BuildIndexBuffer(Environment, Self, Indices));
 
         Environment->CallVoidMethod(Self->m_JavaImplementation, Self->m_UpdateGeometryMethodID, static_cast<jint>(GeometryID), VertexBufferObject.Get(),
             IndexBufferObject.Get());
         
-        CheckException(Environment);
+        Environment->ExceptionCheck();
     }
 
     void CGPUDriverCallbackAdapter::DestroyGeometry_Trampoline(unsigned int GeometryID)
     {
+        ZoneScoped
+        
         const auto* Self = m_ActiveCallbackAdapter;
         
-        JNIEnv* Environment = Self->GetJNIEnvironment();
-        Environment->CallVoidMethod(Self->m_JavaImplementation, Self->m_DestroyGeometryMethodID, static_cast<jint>(GeometryID));
+        auto [Environment, VirtualMachine, bWasAttached] = Self->AcquireJNIEnvironment();
+        if (!Environment && !Self->m_JavaImplementation)
+            return;
         
-        CheckException(Environment);
+        Environment->CallVoidMethod(Self->m_JavaImplementation, Self->m_DestroyGeometryMethodID, static_cast<jint>(GeometryID));
+        Environment->ExceptionCheck();
     }
 
     void CGPUDriverCallbackAdapter::UpdateCommandList_Trampoline(ULCommandList CommandList)
     {
+        ZoneScoped
+        
         const auto* Self = m_ActiveCallbackAdapter;
-        JNIEnv* Environment = Self->GetJNIEnvironment();
+        
+        auto [Environment, VirtualMachine, bWasAttached] = Self->AcquireJNIEnvironment();
+        if (!Environment && !Self->m_JavaImplementation)
+            return;
     
         // Retrieve field/method IDs for ULCommand once per call via the cached class.
         const jfieldID TypeFieldID = Environment->GetFieldID(Self->m_CommandClass, "type", "Lme/ayydxn/luminescence/gpu/ULCommand$Type;");
@@ -338,8 +401,7 @@ namespace Luminescence
         }
     
         Environment->CallVoidMethod(Self->m_JavaImplementation, Self->m_UpdateCommandListMethodID, CommandsArray.Get());
-        
-        CheckException(Environment);
+        Environment->ExceptionCheck();
     }
     
     /*------------------------*/
@@ -348,6 +410,8 @@ namespace Luminescence
     
     jbyteArray CGPUDriverCallbackAdapter::BytesToJavaArray(JNIEnv* Environment, const void* Data, size_t Size)
     {
+        ZoneScoped
+        
         const jbyteArray Array = Environment->NewByteArray(static_cast<jsize>(Size));
         if (!Array)
             return nullptr;
@@ -359,6 +423,8 @@ namespace Luminescence
 
     jobject CGPUDriverCallbackAdapter::BuildGPUState(JNIEnv* Environment, const CGPUDriverCallbackAdapter* Self, const ULGPUState& GPUState)
     {
+        ZoneScoped
+        
         const jobject StateObject = Environment->NewObject(Self->m_GPUStateClass, Self->m_GPUStateConstructorID);
             
         auto FloatArrayField = [&](const char* Name, const float* Data, int Length){
@@ -422,6 +488,8 @@ namespace Luminescence
 
     jobject CGPUDriverCallbackAdapter::BuildVertexBuffer(JNIEnv* Environment, const CGPUDriverCallbackAdapter* Self, const ULVertexBuffer& VertexBuffer)
     {
+        ZoneScoped
+        
         const CScopedLocalRef FormatObject(Environment, Environment->CallStaticObjectMethod(Self->m_VertexFormatClass, Self->m_VertexFormatFromNativeID,
                                     static_cast<jint>(VertexBuffer.format)));
         
@@ -432,6 +500,8 @@ namespace Luminescence
 
     jobject CGPUDriverCallbackAdapter::BuildIndexBuffer(JNIEnv* Environment, const CGPUDriverCallbackAdapter* Self, const ULIndexBuffer& IndexBuffer)
     {
+        ZoneScoped
+        
         const CScopedLocalRef DirectBuf(Environment, Environment->NewDirectByteBuffer(IndexBuffer.data, IndexBuffer.size));
 
         return Environment->NewObject(Self->m_IndexBufferClass, Self->m_IndexBufferConstructorID, DirectBuf.Get());

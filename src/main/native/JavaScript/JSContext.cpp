@@ -133,7 +133,8 @@ namespace
      */
     void JNICALL JSContextUnlock_Native(JNIEnv*, jclass, jlong ViewHandle)
     {
-        ulViewUnlockJSContext(reinterpret_cast<ULView>(ViewHandle));
+        if (ViewHandle == 0)
+            ulViewUnlockJSContext(reinterpret_cast<ULView>(ViewHandle));
     }
 }
 

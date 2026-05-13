@@ -2,6 +2,7 @@
 #include "Cache/JSCCache.h"
 
 #include <JavaScriptCore/JavaScript.h>
+#include "Core/Profiling.h"
 
 #include <vector>
 
@@ -9,6 +10,8 @@ namespace Luminescence::JavaScript
 {
     JSStringRef JavaStringToJSString(JNIEnv* Environment, jstring String)
     {
+        ZoneScoped
+        
         if (!String)
             return JSStringCreateWithUTF8CString("");
 
@@ -22,14 +25,24 @@ namespace Luminescence::JavaScript
 
     jstring JSStringToJavaString(JNIEnv* Environment, JSStringRef String)
     {
+        ZoneScoped
+        
         if (!String)
             return Environment->NewStringUTF("");
-        
+
         const size_t MaxBytes = JSStringGetMaximumUTF8CStringSize(String);
+
+        // Avoid a heap allocation if we can and only fall back to the heap if we really need.
+        if (MaxBytes <= 256)
+        {
+            char Buffer[256];
+            JSStringGetUTF8CString(String, Buffer, sizeof(Buffer));
+            
+            return Environment->NewStringUTF(Buffer);
+        }
+
         std::vector<char> Buffer(MaxBytes);
-        
         JSStringGetUTF8CString(String, Buffer.data(), MaxBytes);
-        
         return Environment->NewStringUTF(Buffer.data());
     }
 

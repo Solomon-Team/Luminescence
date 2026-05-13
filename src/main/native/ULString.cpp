@@ -3,6 +3,7 @@
 //
 
 #include "Core/JNIUtilities.h"
+#include "Core/Profiling.h"
 
 #include <Ultralight/CAPI/CAPI_String.h>
 
@@ -18,6 +19,8 @@
  */
 jlong JNICALL ULCreateString_Native(JNIEnv* Environment, jclass, jstring String)
 {
+    ZoneScoped
+    
     const char* StringCStr = Environment->GetStringUTFChars(String, nullptr);
     
     ULString Result = ulCreateString(StringCStr);
@@ -34,6 +37,8 @@ jlong JNICALL ULCreateString_Native(JNIEnv* Environment, jclass, jstring String)
  */
 jlong JNICALL ULCreateStringUTF8_Native(JNIEnv* Environment, jclass, jstring UTF8String)
 {
+    ZoneScoped
+    
     const char* StringCStr = Environment->GetStringUTFChars(UTF8String, nullptr);
     const size_t StringLength = Environment->GetStringUTFLength(UTF8String);
     
@@ -51,6 +56,8 @@ jlong JNICALL ULCreateStringUTF8_Native(JNIEnv* Environment, jclass, jstring UTF
  */
 jlong JNICALL ULCreateStringUTF16_Native(JNIEnv* Environment, jclass, jstring UTF16String)
 {
+    ZoneScoped
+    
     const jchar* StringChars = Environment->GetStringChars(UTF16String, nullptr);
     const jsize Length = Environment->GetStringLength(UTF16String);
 
@@ -68,6 +75,8 @@ jlong JNICALL ULCreateStringUTF16_Native(JNIEnv* Environment, jclass, jstring UT
  */
 jlong JNICALL ULCreateStringFromCopy_Native(JNIEnv*, jclass, jlong OtherStringHandle)
 {
+    ZoneScoped
+    
     const auto OtherString = reinterpret_cast<ULString>(OtherStringHandle);
     
     return reinterpret_cast<jlong>(ulCreateStringFromCopy(OtherString));
@@ -80,6 +89,8 @@ jlong JNICALL ULCreateStringFromCopy_Native(JNIEnv*, jclass, jlong OtherStringHa
  */
 void JNICALL ULDestroyString_Native(JNIEnv*, jclass, jlong StringHandle)
 {
+    ZoneScoped
+    
     ulDestroyString(reinterpret_cast<ULString>(StringHandle));
 }
 
@@ -90,6 +101,8 @@ void JNICALL ULDestroyString_Native(JNIEnv*, jclass, jlong StringHandle)
  */
 jstring JNICALL ULStringGetData_Native(JNIEnv* Environment, jclass, jlong StringHandle)
 {
+    ZoneScoped
+    
     const auto String = reinterpret_cast<ULString>(StringHandle);
     if (!String)
         return nullptr;
@@ -122,6 +135,8 @@ jstring JNICALL ULStringGetData_Native(JNIEnv* Environment, jclass, jlong String
  */
 jlong JNICALL ULStringGetLength_Native(JNIEnv*, jclass, jlong StringHandle)
 {
+    ZoneScoped
+    
     const auto String = reinterpret_cast<ULString>(StringHandle);
     
     return static_cast<jlong>(ulStringGetLength(String));
@@ -134,6 +149,8 @@ jlong JNICALL ULStringGetLength_Native(JNIEnv*, jclass, jlong StringHandle)
  */
 jboolean JNICALL ULStringIsEmpty_Native(JNIEnv *, jclass, jlong StringHandle)
 {
+    ZoneScoped
+    
     const auto String = reinterpret_cast<ULString>(StringHandle);
     
     return ulStringIsEmpty(String);
@@ -146,6 +163,8 @@ jboolean JNICALL ULStringIsEmpty_Native(JNIEnv *, jclass, jlong StringHandle)
  */
 void JNICALL ULStringAssignString_Native(JNIEnv*, jclass, jlong StringHandle, jlong StringToAssign)
 {
+    ZoneScoped
+    
     const auto String = reinterpret_cast<ULString>(StringHandle);
     const auto NewString = reinterpret_cast<ULString>(StringToAssign);
     
@@ -159,6 +178,8 @@ void JNICALL ULStringAssignString_Native(JNIEnv*, jclass, jlong StringHandle, jl
  */
 void JNICALL ULAssignCString_Native(JNIEnv* Environment, jclass, jlong StringHandle, jstring String)
 {
+    ZoneScoped
+    
     if (String == nullptr)
         return;
 

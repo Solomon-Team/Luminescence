@@ -1,4 +1,5 @@
 ﻿#include "Core/JNIUtilities.h"
+#include "Core/Profiling.h"
 
 #include <Ultralight/CAPI/CAPI_Session.h>
 
@@ -9,6 +10,8 @@
  */
 jlong JNICALL ULCreateSession_Native(JNIEnv* Environment, jclass, jlong RendererHandle, jboolean bIsPersistent, jstring Name)
 {
+    ZoneScoped
+    
     const auto Renderer = reinterpret_cast<ULRenderer>(RendererHandle);
     const ULString SessionName = Luminescence::JavaStringToULString(Environment, Name);
     
@@ -22,6 +25,8 @@ jlong JNICALL ULCreateSession_Native(JNIEnv* Environment, jclass, jlong Renderer
  */
 void JNICALL ULDestroySession_Native(JNIEnv*, jclass, jlong handle)
 {
+    ZoneScoped
+    
     ulDestroySession(reinterpret_cast<ULSession>(handle));
 }
 
@@ -32,6 +37,8 @@ void JNICALL ULDestroySession_Native(JNIEnv*, jclass, jlong handle)
  */
 jlong JNICALL ULDefaultSession_Native(JNIEnv*, jclass, jlong RendererHandle)
 {
+    ZoneScoped
+    
     return reinterpret_cast<jlong>(ulDefaultSession(reinterpret_cast<ULRenderer>(RendererHandle)));
 }
 
@@ -42,6 +49,8 @@ jlong JNICALL ULDefaultSession_Native(JNIEnv*, jclass, jlong RendererHandle)
  */
 jboolean JNICALL ULSessionIsPersistent_Native(JNIEnv*, jclass, jlong SessionHandle)
 {
+    ZoneScoped
+    
     return ulSessionIsPersistent(reinterpret_cast<ULSession>(SessionHandle));
 }
 
@@ -52,6 +61,8 @@ jboolean JNICALL ULSessionIsPersistent_Native(JNIEnv*, jclass, jlong SessionHand
  */
 jstring JNICALL ULSessionGetName_Native(JNIEnv* Environment, jclass, jlong SessionHandle)
 {
+    ZoneScoped
+    
     const ULString Name = ulSessionGetName(reinterpret_cast<ULSession>(SessionHandle));
     
     return Luminescence::ULStringToJavaString(Environment, Name);
@@ -64,6 +75,8 @@ jstring JNICALL ULSessionGetName_Native(JNIEnv* Environment, jclass, jlong Sessi
  */
 jlong JNICALL ULSessionGetID_Native(JNIEnv*, jclass, jlong SessionHandle)
 {
+    ZoneScoped
+    
     return static_cast<jlong>(ulSessionGetId(reinterpret_cast<ULSession>(SessionHandle)));
 }
 
@@ -74,6 +87,8 @@ jlong JNICALL ULSessionGetID_Native(JNIEnv*, jclass, jlong SessionHandle)
  */
 jstring JNICALL ULSessionGetDiskPath_Native(JNIEnv* Environment, jclass, jlong SessionHandle)
 {
+    ZoneScoped
+    
     const ULString Path = ulSessionGetDiskPath(reinterpret_cast<ULSession>(SessionHandle));
     
     return Luminescence::ULStringToJavaString(Environment, Path);

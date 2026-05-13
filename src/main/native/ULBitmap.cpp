@@ -1,5 +1,6 @@
 ﻿#include "Cache/BitmapCache.h"
 #include "Core/JNIUtilities.h"
+#include "Core/Profiling.h"
 
 #include <Ultralight/CAPI/CAPI_Bitmap.h>
 
@@ -10,6 +11,8 @@
  */
 jlong JNICALL ULCreateEmptyBitmap_Native(JNIEnv*, jclass)
 {
+    ZoneScoped
+    
     return reinterpret_cast<jlong>(ulCreateEmptyBitmap());
 }
 
@@ -20,6 +23,8 @@ jlong JNICALL ULCreateEmptyBitmap_Native(JNIEnv*, jclass)
  */
 jlong JNICALL ULCreateBitmap_Native(JNIEnv*, jclass, jint Width, jint Height, jint BitmapFormatOrdinal)
 {
+    ZoneScoped
+    
     const auto BitmapFormat = static_cast<ULBitmapFormat>(BitmapFormatOrdinal);
 
     return reinterpret_cast<jlong>(ulCreateBitmap(static_cast<unsigned int>(Width), static_cast<unsigned int>(Height), BitmapFormat));
@@ -31,8 +36,10 @@ jlong JNICALL ULCreateBitmap_Native(JNIEnv*, jclass, jint Width, jint Height, ji
  * Signature: (IIIILjava/nio/ByteBuffer;JZ)J
  */
 jlong JNICALL ULCreateBitmapFromPixels_Native(JNIEnv* Environment, jclass, jint Width, jint Height, jint BitmapFormatOrdinal, jint RowBytes, jobject Pixels,
-                                              jlong Size, jboolean bShouldCopy)
+                                               jlong Size, jboolean bShouldCopy)
 {
+    ZoneScoped
+    
     const auto BitmapFormat = static_cast<ULBitmapFormat>(BitmapFormatOrdinal);
     const void* PixelsBuffer = Environment->GetDirectBufferAddress(Pixels);
 
@@ -57,6 +64,8 @@ jlong JNICALL ULCreateBitmapFromPixels_Native(JNIEnv* Environment, jclass, jint 
  */
 jlong JNICALL ULCreateBitmapFromCopy_Native(JNIEnv*, jclass, jlong OtherBitmapHandle)
 {
+    ZoneScoped
+    
     const auto ExistingBitmap = reinterpret_cast<ULBitmap>(OtherBitmapHandle);
     
     return reinterpret_cast<jlong>(ulCreateBitmapFromCopy(ExistingBitmap));
@@ -69,6 +78,8 @@ jlong JNICALL ULCreateBitmapFromCopy_Native(JNIEnv*, jclass, jlong OtherBitmapHa
  */
 void JNICALL ULDestroyBitmap_Native(JNIEnv*, jclass, jlong BitmapHandle)
 {
+    ZoneScoped
+    
     ulDestroyBitmap(reinterpret_cast<ULBitmap>(BitmapHandle));
 }
 
@@ -79,6 +90,8 @@ void JNICALL ULDestroyBitmap_Native(JNIEnv*, jclass, jlong BitmapHandle)
  */
 jint JNICALL ULBitmapGetWidth_Native(JNIEnv*, jclass, jlong BitmapHandle)
 {
+    ZoneScoped
+    
     return static_cast<jint>(ulBitmapGetWidth(reinterpret_cast<ULBitmap>(BitmapHandle)));
 }
 
@@ -89,6 +102,8 @@ jint JNICALL ULBitmapGetWidth_Native(JNIEnv*, jclass, jlong BitmapHandle)
  */
 jint JNICALL ULBitmapGetHeight_Native(JNIEnv*, jclass, jlong BitmapHandle)
 {
+    ZoneScoped
+    
     return static_cast<jint>(ulBitmapGetHeight(reinterpret_cast<ULBitmap>(BitmapHandle)));
 }
 
@@ -99,6 +114,8 @@ jint JNICALL ULBitmapGetHeight_Native(JNIEnv*, jclass, jlong BitmapHandle)
  */
 jint JNICALL ULBitmapGetFormat_Native(JNIEnv*, jclass, jlong BitmapHandle)
 {
+    ZoneScoped
+    
     return ulBitmapGetFormat(reinterpret_cast<ULBitmap>(BitmapHandle));
 }
 
@@ -109,6 +126,8 @@ jint JNICALL ULBitmapGetFormat_Native(JNIEnv*, jclass, jlong BitmapHandle)
  */
 jint JNICALL ULBitmapGetBpp_Native(JNIEnv*, jclass, jlong BitmapHandle)
 {
+    ZoneScoped
+    
     return static_cast<jint>(ulBitmapGetBpp(reinterpret_cast<ULBitmap>(BitmapHandle)));
 }
 
@@ -119,6 +138,8 @@ jint JNICALL ULBitmapGetBpp_Native(JNIEnv*, jclass, jlong BitmapHandle)
  */
 jint JNICALL ULBitmapGetRowBytes_Native(JNIEnv*, jclass, jlong BitmapHandle)
 {
+    ZoneScoped
+    
     return static_cast<jint>(ulBitmapGetRowBytes(reinterpret_cast<ULBitmap>(BitmapHandle)));
 }
 
@@ -129,6 +150,8 @@ jint JNICALL ULBitmapGetRowBytes_Native(JNIEnv*, jclass, jlong BitmapHandle)
  */
 jint JNICALL ULBitmapGetSize_Native(JNIEnv*, jclass, jlong BitmapHandle)
 {
+    ZoneScoped
+    
     return static_cast<jint>(ulBitmapGetSize(reinterpret_cast<ULBitmap>(BitmapHandle)));
 }
 
@@ -139,6 +162,8 @@ jint JNICALL ULBitmapGetSize_Native(JNIEnv*, jclass, jlong BitmapHandle)
  */
 jboolean JNICALL ULBitmapOwnsPixels_Native(JNIEnv*, jclass, jlong BitmapHandle)
 {
+    ZoneScoped
+    
     return ulBitmapOwnsPixels(reinterpret_cast<ULBitmap>(BitmapHandle));
 }
 
@@ -149,6 +174,8 @@ jboolean JNICALL ULBitmapOwnsPixels_Native(JNIEnv*, jclass, jlong BitmapHandle)
  */
 jobject JNICALL ULBitmapLockPixels_Native(JNIEnv* Environment, jclass, jlong BitmapHandle)
 {
+    ZoneScoped
+    
     const auto PixelsBuffer = ulBitmapLockPixels(reinterpret_cast<ULBitmap>(BitmapHandle));
     const unsigned int Width = ulBitmapGetWidth(reinterpret_cast<ULBitmap>(BitmapHandle));
     const unsigned int Height = ulBitmapGetHeight(reinterpret_cast<ULBitmap>(BitmapHandle));
@@ -165,6 +192,8 @@ jobject JNICALL ULBitmapLockPixels_Native(JNIEnv* Environment, jclass, jlong Bit
  */
 void JNICALL ULBitmapUnlockPixels_Native(JNIEnv*, jclass, jlong BitmapHandle)
 {
+    ZoneScoped
+    
     ulBitmapUnlockPixels(reinterpret_cast<ULBitmap>(BitmapHandle));
 }
 
@@ -175,6 +204,8 @@ void JNICALL ULBitmapUnlockPixels_Native(JNIEnv*, jclass, jlong BitmapHandle)
  */
 jobject JNICALL ULBitmapRawPixels_Native(JNIEnv* Environment, jclass, jlong BitmapHandle)
 {
+    ZoneScoped
+    
     const auto Bitmap = reinterpret_cast<ULBitmap>(BitmapHandle);
 
     void* PixelsBuffer = ulBitmapRawPixels(Bitmap);
@@ -193,6 +224,8 @@ jobject JNICALL ULBitmapRawPixels_Native(JNIEnv* Environment, jclass, jlong Bitm
  */
 jboolean JNICALL ULBitmapIsEmpty_Native(JNIEnv*, jclass, jlong BitmapHandle)
 {
+    ZoneScoped
+    
     return ulBitmapIsEmpty(reinterpret_cast<ULBitmap>(BitmapHandle));
 }
 
@@ -203,6 +236,8 @@ jboolean JNICALL ULBitmapIsEmpty_Native(JNIEnv*, jclass, jlong BitmapHandle)
  */
 void JNICALL ULBitmapErase_Native(JNIEnv*, jclass, jlong BitmapHandle)
 {
+    ZoneScoped
+    
     ulBitmapErase(reinterpret_cast<ULBitmap>(BitmapHandle));
 }
 
@@ -213,6 +248,8 @@ void JNICALL ULBitmapErase_Native(JNIEnv*, jclass, jlong BitmapHandle)
  */
 jboolean JNICALL ULBitmapWritePNG_Native(JNIEnv* Environment, jclass, jlong BitmapHandle, jstring PathString)
 {
+    ZoneScoped
+    
     const auto Bitmap = reinterpret_cast<ULBitmap>(BitmapHandle);
     const auto PathStringChars = Environment->GetStringUTFChars(PathString, nullptr);
     
@@ -230,6 +267,8 @@ jboolean JNICALL ULBitmapWritePNG_Native(JNIEnv* Environment, jclass, jlong Bitm
  */
 void JNICALL ULBitmapSwapRedBlueChannels_Native(JNIEnv*, jclass, jlong BitmapHandle)
 {
+    ZoneScoped
+    
     ulBitmapSwapRedBlueChannels(reinterpret_cast<ULBitmap>(BitmapHandle));
 }
 

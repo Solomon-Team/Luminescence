@@ -5,6 +5,7 @@
 #include "ClipboardCallbackAdapter.h"
 #include "Core/CallbackAdapterRegistry.h"
 #include "Core/JNIUtilities.h"
+#include "Core/Profiling.h"
 #include "Core/ScopedLocalRef.h"
 
 namespace Luminescence
@@ -39,22 +40,33 @@ namespace Luminescence
 
     void CClipboardCallbackAdapter::Clear_Trampoline()
     {
+        ZoneScoped
+        
         const CClipboardCallbackAdapter* Self = m_ActiveCallbackAdapter;
-        JNIEnv* Environment = Self->GetJNIEnvironment();
+        
+        auto [Environment, VirtualMachine, bWasAttached] = Self->AcquireJNIEnvironment();
+        if (!Environment && !Self->m_JavaImplementation)
+            return;
         
         Environment->CallVoidMethod(Self->m_JavaImplementation, Self->m_ClearMethodID);
-        
-        CheckException(Environment);
+        if (Environment->ExceptionCheck())
+            return;
     }
 
     void CClipboardCallbackAdapter::ReadPlainText_Trampoline(ULString Result)
     {
+        ZoneScoped
+        
         const CClipboardCallbackAdapter* Self = m_ActiveCallbackAdapter;
-        JNIEnv* Environment = Self->GetJNIEnvironment();
-
+        
+        auto [Environment, VirtualMachine, bWasAttached] = Self->AcquireJNIEnvironment();
+        if (!Environment && !Self->m_JavaImplementation)
+            return;
+        
         // Call Java to get the current clipboard contents as a String
         const CScopedLocalRef ClipboardText(Environment, (jstring) Environment->CallObjectMethod(Self->m_JavaImplementation, Self->m_ReadPlainTextMethodID));
-        CheckException(Environment);
+        if (Environment->ExceptionCheck())
+            return;
 
         if (!ClipboardText.Get())
             return;
@@ -73,13 +85,17 @@ namespace Luminescence
 
     void CClipboardCallbackAdapter::WritePlainText_Trampoline(ULString Text)
     {
+        ZoneScoped
+        
         const CClipboardCallbackAdapter* Self = m_ActiveCallbackAdapter;
-        JNIEnv* Environment = Self->GetJNIEnvironment();
+        
+        auto [Environment, VirtualMachine, bWasAttached] = Self->AcquireJNIEnvironment();
+        if (!Environment && !Self->m_JavaImplementation)
+            return;
         
         const CScopedLocalRef TextString(Environment, ULStringToJavaString(Environment, Text));
         
         Environment->CallVoidMethod(Self->m_JavaImplementation, Self->m_WritePlainTextMethodID, TextString.Get());
-        
-        CheckException(Environment);
+        Environment->ExceptionCheck();
     }
 }

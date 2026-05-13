@@ -3,6 +3,7 @@
 //
 
 #include "Core/JNIUtilities.h"
+#include "Core/Profiling.h"
 
 #include <Ultralight/CAPI/CAPI_Buffer.h>
 
@@ -15,6 +16,8 @@
  */
 jlong JNICALL ULCreateBufferFromDirect_Native(JNIEnv* Environment, jclass, jobject DirectByteBuffer, jint Capacity)
 {
+    ZoneScoped
+    
     void* Data = Environment->GetDirectBufferAddress(DirectByteBuffer);
     if (!Data)
         return 0; // Not a direct buffer or capacity is 0
@@ -32,6 +35,8 @@ jlong JNICALL ULCreateBufferFromDirect_Native(JNIEnv* Environment, jclass, jobje
  */
 jlong JNICALL ULCreateBufferFromCopy_Native(JNIEnv* Environment, jclass, jbyteArray Data)
 {
+    ZoneScoped
+    
     const auto Length = Environment->GetArrayLength(Data);
     
     // Allocate a temporary buffer for the copy
@@ -51,6 +56,8 @@ jlong JNICALL ULCreateBufferFromCopy_Native(JNIEnv* Environment, jclass, jbyteAr
  */
 void JNICALL ULDestroyBuffer_Native(JNIEnv*, jclass, jlong BufferHandle)
 {
+    ZoneScoped
+    
     ulDestroyBuffer(reinterpret_cast<ULBuffer>(BufferHandle));
 }
 
@@ -61,6 +68,8 @@ void JNICALL ULDestroyBuffer_Native(JNIEnv*, jclass, jlong BufferHandle)
  */
 jlong JNICALL ULBufferGetSize_Native(JNIEnv*, jclass, jlong BufferHandle)
 {
+    ZoneScoped
+    
     const auto Buffer = reinterpret_cast<ULBuffer>(BufferHandle);
     
     return static_cast<jlong>(ulBufferGetSize(Buffer));
@@ -73,6 +82,8 @@ jlong JNICALL ULBufferGetSize_Native(JNIEnv*, jclass, jlong BufferHandle)
  */
 jboolean JNICALL ULBufferOwnsData_Native(JNIEnv*, jclass, jlong BufferHandle)
 {
+    ZoneScoped
+    
     const auto Buffer = reinterpret_cast<ULBuffer>(BufferHandle);
     
     return ulBufferOwnsData(Buffer);
@@ -85,6 +96,8 @@ jboolean JNICALL ULBufferOwnsData_Native(JNIEnv*, jclass, jlong BufferHandle)
  */
 jbyteArray JNICALL ULBufferToByteArray_Native(JNIEnv* Environment, jclass, jlong BufferHandle)
 {
+    ZoneScoped
+    
     const auto Buffer = reinterpret_cast<ULBuffer>(BufferHandle);
     const auto* Data = static_cast<const jbyte*>(ulBufferGetData(Buffer));
     const auto Size = static_cast<jsize>(ulBufferGetSize(Buffer));

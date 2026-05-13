@@ -5,6 +5,7 @@
 #include "FontLoaderCallbackAdapter.h"
 #include "Core/CallbackAdapterRegistry.h"
 #include "Core/JNIUtilities.h"
+#include "Core/Profiling.h"
 #include "Core/ScopedLocalRef.h"
 
 namespace Luminescence
@@ -35,7 +36,7 @@ namespace Luminescence
 
     CFontLoaderCallbackAdapter::~CFontLoaderCallbackAdapter()
     {
-        if (JNIEnv* Environment = GetJNIEnvironment())
+        if (auto [Environment, VirtualMachine, bWasAttached] = AcquireJNIEnvironment(); Environment)
         {
             Environment->DeleteGlobalRef(m_FontFileClass);
             Environment->DeleteGlobalRef(m_SourceFilePath);
@@ -58,40 +59,58 @@ namespace Luminescence
 
     ULString CFontLoaderCallbackAdapter::GetFallbackFont_Trampoline()
     {
+        ZoneScoped
+        
         const CFontLoaderCallbackAdapter* Self = m_ActiveCallbackAdapter;
-        JNIEnv* Environment = Self->GetJNIEnvironment();
-
+        
+        auto [Environment, VirtualMachine, bWasAttached] = Self->AcquireJNIEnvironment();
+        if (!Environment && !Self->m_JavaImplementation)
+            return ulCreateString("");
+        
         const CScopedLocalRef Result(Environment, (jstring) Environment->CallObjectMethod(Self->m_JavaImplementation, Self->m_GetFallbackFontMethodID));
-        CheckException(Environment);
-
+        if (Environment->ExceptionCheck())
+            return ulCreateString("");
+        
         // Ultralight calls ulDestroyString() on this — return a fresh allocation.
         return Result.Get() ? JavaStringToULString(Environment, Result) : ulCreateString("Arial");
     }
 
     ULString CFontLoaderCallbackAdapter::GetFallbackFontForCharacters_Trampoline(ULString Characters, int Weight, bool bIsItalic)
     {
+        ZoneScoped
+        
         const CFontLoaderCallbackAdapter* Self = m_ActiveCallbackAdapter;
-        JNIEnv* Environment = Self->GetJNIEnvironment();
-
+        
+        auto [Environment, VirtualMachine, bWasAttached] = Self->AcquireJNIEnvironment();
+        if (!Environment && !Self->m_JavaImplementation)
+            return ulCreateString("");
+        
         const CScopedLocalRef CharsStr(Environment, ULStringToJavaString(Environment, Characters));
         const CScopedLocalRef Result(Environment, (jstring) Environment->CallObjectMethod(Self->m_JavaImplementation, Self->m_GetFallbackFontForCharactersMethodID,
                                             CharsStr.Get(), static_cast<jint>(Weight), static_cast<jboolean>(bIsItalic)));
         
-        CheckException(Environment);
+        if (Environment->ExceptionCheck())
+            return ulCreateString("");
 
         return Result.Get() ? JavaStringToULString(Environment, Result) : ulCreateString("Arial");
     }
 
     ULFontFile CFontLoaderCallbackAdapter::Load_Trampoline(ULString Family, int Weight, bool bIsItalic)
     {
+        ZoneScoped
+        
         const CFontLoaderCallbackAdapter* Self = m_ActiveCallbackAdapter;
-        JNIEnv* Environment = Self->GetJNIEnvironment();
-
+        
+        auto [Environment, VirtualMachine, bWasAttached] = Self->AcquireJNIEnvironment();
+        if (!Environment && !Self->m_JavaImplementation)
+            return nullptr;
+        
         const CScopedLocalRef FamilyStr(Environment, ULStringToJavaString(Environment, Family));
         const CScopedLocalRef FontFileObject(Environment, Environment->CallObjectMethod(Self->m_JavaImplementation, Self->m_LoadMethodID, FamilyStr.Get(),
                                   static_cast<jint>(Weight), static_cast<jboolean>(bIsItalic)));
         
-        CheckException(Environment);
+        if (Environment->ExceptionCheck())
+            return nullptr;
 
         // Null return means "fall back to another font" — valid per the API contract.
         if (!FontFileObject.Get())

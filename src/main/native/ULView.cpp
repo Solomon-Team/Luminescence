@@ -5,6 +5,7 @@
 #include "Cache/ViewCache.h"
 #include "Core/CallbackAdapterRegistry.h"
 #include "Core/JNIUtilities.h"
+#include "Core/Profiling.h"
 
 #include <Ultralight/CAPI/CAPI_View.h>
 
@@ -14,37 +15,49 @@ namespace
 
 	void OnChangeTitle_Trampoline(void*, ULView Caller, ULString Title)
 	{
-		if (const auto* ViewCallbackAdapter = dynamic_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
+		ZoneScoped
+		
+		if (const auto* ViewCallbackAdapter = static_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
 			ViewCallbackAdapter->OnChangeTitle(Title);
 	}
 
 	void OnChangeURL_Trampoline(void*, ULView Caller, ULString URL)
 	{
-		if (const auto* ViewCallbackAdapter = dynamic_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
+		ZoneScoped
+		
+		if (const auto* ViewCallbackAdapter = static_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
 			ViewCallbackAdapter->OnChangeURL(URL);
 	}
 
 	void OnTooltipChange_Trampoline(void*, ULView Caller, ULString Tooltip)
 	{
-		if (const auto* ViewCallbackAdapter = dynamic_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
+		ZoneScoped
+		
+		if (const auto* ViewCallbackAdapter = static_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
 			ViewCallbackAdapter->OnTooltipChange(Tooltip);
 	}
 
 	void OnCursorChange_Trampoline(void*, ULView Caller, ULCursor Cursor)
 	{
-		if (const auto* ViewCallbackAdapter = dynamic_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
+		ZoneScoped
+		
+		if (const auto* ViewCallbackAdapter = static_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
 			ViewCallbackAdapter->OnCursorChange(Cursor);
 	}
 
 	void OnConsoleMessageAdded_Trampoline(void*, ULView Caller, ULMessageSource Source, ULMessageLevel Level, ULString Message, unsigned int LineNumber, unsigned int ColumnNumber, ULString SourceID)
 	{
-		if (const auto* ViewCallbackAdapter = dynamic_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
+		ZoneScoped
+		
+		if (const auto* ViewCallbackAdapter = static_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
 			ViewCallbackAdapter->OnConsoleMessageAdded(Source, Level, Message, LineNumber, ColumnNumber, SourceID);
 	}
 
 	ULView OnChildViewCreated_Trampoline(void*, ULView Caller, ULString OpenerURL, ULString TargetURL, bool bIsPopup, ULIntRect PopupRect)
 	{
-		if (const auto* ViewCallbackAdapter = dynamic_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
+		ZoneScoped
+		
+		if (const auto* ViewCallbackAdapter = static_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
 			return ViewCallbackAdapter->OnChildViewCreated(OpenerURL, TargetURL, bIsPopup, PopupRect);
 		
 		return nullptr;
@@ -52,7 +65,9 @@ namespace
 	
 	ULView OnInspectorViewCreated_Trampoline(void*, ULView Caller, bool bIsLocal, ULString InspectedURL)
 	{
-		if (const auto* ViewCallbackAdapter = dynamic_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
+		ZoneScoped
+		
+		if (const auto* ViewCallbackAdapter = static_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
 			return ViewCallbackAdapter->OnInspectorViewCreated(bIsLocal, InspectedURL);
 		
 		return nullptr;
@@ -60,37 +75,49 @@ namespace
 	
 	void OnLoadingBegin_Trampoline(void*, ULView Caller, unsigned long long FrameID, bool bIsMainFrame, ULString URL)
 	{
-		if (const auto* ViewCallbackAdapter = dynamic_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
+		ZoneScoped
+		
+		if (const auto* ViewCallbackAdapter = static_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
 			ViewCallbackAdapter->OnLoadingBegin(FrameID, bIsMainFrame, URL);
 	}
 	
 	void OnLoadingFinish_Trampoline(void*, ULView Caller, unsigned long long FrameID, bool bIsMainFrame, ULString URL)
 	{
-		if (const auto* ViewCallbackAdapter = dynamic_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
+		ZoneScoped
+		
+		if (const auto* ViewCallbackAdapter = static_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
 			ViewCallbackAdapter->OnLoadingFinish(FrameID, bIsMainFrame, URL);
 	}
 	
 	void OnLoadingFail_Trampoline(void*, ULView Caller, unsigned long long FrameID, bool bIsMainFrame, ULString URL, ULString Description, ULString ErrorDomain, int ErrorCode)
 	{
-		if (const auto* ViewCallbackAdapter = dynamic_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
+		ZoneScoped
+		
+		if (const auto* ViewCallbackAdapter = static_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
 			ViewCallbackAdapter->OnLoadingFail(FrameID, bIsMainFrame, URL, Description, ErrorDomain, ErrorCode);
 	}
 	
 	void OnWindowObjectReady_Trampoline(void*, ULView Caller, unsigned long long FrameID, bool bIsMainFrame, ULString URL)
 	{
-		if (const auto* ViewCallbackAdapter = dynamic_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
+		ZoneScoped
+
+		if (const auto* ViewCallbackAdapter = static_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
 			ViewCallbackAdapter->OnWindowObjectReady(FrameID, bIsMainFrame, URL);
 	}
 	
 	void OnDOMReady_Trampoline(void*, ULView Caller, unsigned long long FrameID, bool bIsMainFrame, ULString URL)
 	{
-		if (const auto* ViewCallbackAdapter = dynamic_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
+		ZoneScoped
+		
+		if (const auto* ViewCallbackAdapter = static_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
 			ViewCallbackAdapter->OnDOMReady(FrameID, bIsMainFrame, URL);
 	}
 	
 	void OnUpdateHistory_Trampoline(void*, ULView Caller)
 	{
-		if (const auto* ViewCallbackAdapter = dynamic_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
+		ZoneScoped
+		
+		if (const auto* ViewCallbackAdapter = static_cast<CViewCallbackAdapter*>(CCallbackAdapterRegistry::GetInstance().Find(reinterpret_cast<uintptr_t>(Caller))))
 			ViewCallbackAdapter->OnUpdateHistory();
 	}
 }
@@ -102,6 +129,8 @@ namespace
  */
 jlong JNICALL ULCreateView_Native(JNIEnv*, jclass, jlong RendererHandle, jint Width, jint Height, jlong ViewConfigHandle, jlong SessionHandle)
 {
+	ZoneScoped
+	
 	const auto Renderer = reinterpret_cast<ULRenderer>(RendererHandle);
 	const auto ViewConfig = reinterpret_cast<ULViewConfig>(ViewConfigHandle);
 	const auto Session = reinterpret_cast<ULSession>(SessionHandle);
@@ -118,6 +147,8 @@ jlong JNICALL ULCreateView_Native(JNIEnv*, jclass, jlong RendererHandle, jint Wi
  */
 void JNICALL ULDestroyView_Native(JNIEnv*, jclass, jlong ViewHandle)
 {
+	ZoneScoped
+
 	ulDestroyView(reinterpret_cast<ULView>(ViewHandle));
 }
 
@@ -128,6 +159,8 @@ void JNICALL ULDestroyView_Native(JNIEnv*, jclass, jlong ViewHandle)
  */
 jstring JNICALL ULViewGetURL_Native(JNIEnv* Environment, jclass, jlong ViewHandle)
 {
+	ZoneScoped
+	
 	const auto View = reinterpret_cast<ULView>(ViewHandle);
 	const auto ViewURL = ulViewGetURL(View);
 	const auto ViewURLData = ulStringGetData(ViewURL);
@@ -142,6 +175,8 @@ jstring JNICALL ULViewGetURL_Native(JNIEnv* Environment, jclass, jlong ViewHandl
  */
 jstring JNICALL ULViewGetTitle_Native(JNIEnv* Environment, jclass, jlong ViewHandle)
 {
+	ZoneScoped
+
 	const auto View = reinterpret_cast<ULView>(ViewHandle);
 	const auto ViewTitle = ulViewGetTitle(View);
 	const auto ViewTitleData = ulStringGetData(ViewTitle);
@@ -156,6 +191,8 @@ jstring JNICALL ULViewGetTitle_Native(JNIEnv* Environment, jclass, jlong ViewHan
  */
 jint JNICALL ULViewGetWidth_Native(JNIEnv*, jclass, jlong ViewHandle)
 {
+	ZoneScoped
+
 	return static_cast<int>(ulViewGetWidth(reinterpret_cast<ULView>(ViewHandle)));
 }
 
@@ -166,6 +203,8 @@ jint JNICALL ULViewGetWidth_Native(JNIEnv*, jclass, jlong ViewHandle)
  */
 jint JNICALL ULViewGetHeight_Native(JNIEnv*, jclass, jlong ViewHandle)
 {
+	ZoneScoped
+
 	return static_cast<int>(ulViewGetHeight(reinterpret_cast<ULView>(ViewHandle)));
 }
 
@@ -176,6 +215,8 @@ jint JNICALL ULViewGetHeight_Native(JNIEnv*, jclass, jlong ViewHandle)
  */
 jint JNICALL ULViewGetDisplayID_Native(JNIEnv*, jclass, jlong ViewHandle)
 {
+	ZoneScoped
+
 	return static_cast<int>(ulViewGetDisplayId(reinterpret_cast<ULView>(ViewHandle)));
 }
 
@@ -186,6 +227,8 @@ jint JNICALL ULViewGetDisplayID_Native(JNIEnv*, jclass, jlong ViewHandle)
  */
 void JNICALL ULViewSetDisplayID_Native(JNIEnv*, jclass, jlong ViewHandle, jint DisplayID)
 {
+	ZoneScoped
+
 	const auto View = reinterpret_cast<ULView>(ViewHandle);
 
 	ulViewSetDisplayId(View, static_cast<unsigned int>(DisplayID));
@@ -198,6 +241,8 @@ void JNICALL ULViewSetDisplayID_Native(JNIEnv*, jclass, jlong ViewHandle, jint D
  */
 jdouble JNICALL ULViewGetDeviceScale_Native(JNIEnv*, jclass, jlong ViewHandle)
 {
+	ZoneScoped
+
 	return ulViewGetDeviceScale(reinterpret_cast<ULView>(ViewHandle));
 }
 
@@ -208,6 +253,8 @@ jdouble JNICALL ULViewGetDeviceScale_Native(JNIEnv*, jclass, jlong ViewHandle)
  */
 void JNICALL ULViewSetDeviceScale_Native(JNIEnv*, jclass, jlong ViewHandle, jdouble DeviceScale)
 {
+	ZoneScoped
+
 	const auto View = reinterpret_cast<ULView>(ViewHandle);
 
 	ulViewSetDeviceScale(View, DeviceScale);
@@ -220,6 +267,8 @@ void JNICALL ULViewSetDeviceScale_Native(JNIEnv*, jclass, jlong ViewHandle, jdou
  */
 jboolean JNICALL ULViewIsAccelerated_Native(JNIEnv*, jclass, jlong ViewHandle)
 {
+	ZoneScoped
+
 	return ulViewIsAccelerated(reinterpret_cast<ULView>(ViewHandle));
 }
 
@@ -230,6 +279,8 @@ jboolean JNICALL ULViewIsAccelerated_Native(JNIEnv*, jclass, jlong ViewHandle)
  */
 jboolean JNICALL ULViewIsTransparent_Native(JNIEnv*, jclass, jlong ViewHandle)
 {
+	ZoneScoped
+
 	return ulViewIsTransparent(reinterpret_cast<ULView>(ViewHandle));
 }
 
@@ -240,6 +291,8 @@ jboolean JNICALL ULViewIsTransparent_Native(JNIEnv*, jclass, jlong ViewHandle)
  */
 jboolean JNICALL ULViewIsLoading_Native(JNIEnv*, jclass, jlong ViewHandle)
 {
+	ZoneScoped
+
 	return ulViewIsLoading(reinterpret_cast<ULView>(ViewHandle));
 }
 
@@ -250,6 +303,8 @@ jboolean JNICALL ULViewIsLoading_Native(JNIEnv*, jclass, jlong ViewHandle)
  */
 jobject JNICALL ULViewGetRenderTarget_Native(JNIEnv* Environment, jclass, jlong ViewHandle)
 {
+	ZoneScoped
+
 	using namespace Luminescence;
 
 	const auto View = reinterpret_cast<ULView>(ViewHandle);
@@ -283,6 +338,8 @@ jobject JNICALL ULViewGetRenderTarget_Native(JNIEnv* Environment, jclass, jlong 
  */
 jlong JNICALL ULViewGetSurface_Native(JNIEnv*, jclass, jlong ViewHandle)
 {
+	ZoneScoped
+
 	const auto View = reinterpret_cast<ULView>(ViewHandle);
 
 	return reinterpret_cast<jlong>(ulViewGetSurface(View));
@@ -293,9 +350,10 @@ jlong JNICALL ULViewGetSurface_Native(JNIEnv*, jclass, jlong ViewHandle)
  * Method:    nulViewLoadHTML
  * Signature: (JLjava/lang/String;)V
  */
-void JNICALL ULViewLoadHTML_Native
-(JNIEnv* Environment, jclass, jlong ViewHandle, jstring HTMLString)
+void JNICALL ULViewLoadHTML_Native(JNIEnv* Environment, jclass, jlong ViewHandle, jstring HTMLString)
 {
+	ZoneScoped
+
 	const auto View = reinterpret_cast<ULView>(ViewHandle);
 	const auto HTMLStringChars = Environment->GetStringUTFChars(HTMLString, nullptr);
 	const auto HTML = ulCreateString(HTMLStringChars);
@@ -313,6 +371,8 @@ void JNICALL ULViewLoadHTML_Native
  */
 void JNICALL ULViewLoadURL_Native(JNIEnv* Environment, jclass, jlong ViewHandle, jstring URLString)
 {
+	ZoneScoped
+
 	const auto View = reinterpret_cast<ULView>(ViewHandle);
 	const auto URLStringChars = Environment->GetStringUTFChars(URLString, nullptr);
 	const auto URL = ulCreateString(URLStringChars);
@@ -328,9 +388,10 @@ void JNICALL ULViewLoadURL_Native(JNIEnv* Environment, jclass, jlong ViewHandle,
  * Method:    nulViewResize
  * Signature: (JII)V
  */
-void JNICALL ULViewResize_Native
-(JNIEnv*, jclass, jlong ViewHandle, jint Width, jint Height)
+void JNICALL ULViewResize_Native(JNIEnv*, jclass, jlong ViewHandle, jint Width, jint Height)
 {
+	ZoneScoped
+
 	const auto View = reinterpret_cast<ULView>(ViewHandle);
 
 	ulViewResize(View, static_cast<unsigned int>(Width), static_cast<unsigned int>(Height));
@@ -343,6 +404,8 @@ void JNICALL ULViewResize_Native
  */
 jlong JNICALL ULViewLockJSContext_Native(JNIEnv*, jclass, jlong ViewHandle)
 {
+	ZoneScoped
+
 	const auto View = reinterpret_cast<ULView>(ViewHandle);
 
 	return reinterpret_cast<jlong>(ulViewLockJSContext(View));
@@ -355,6 +418,8 @@ jlong JNICALL ULViewLockJSContext_Native(JNIEnv*, jclass, jlong ViewHandle)
  */
 void JNICALL ULViewUnlockJSContext_Native(JNIEnv*, jclass, jlong ViewHandle)
 {
+	ZoneScoped
+
 	ulViewUnlockJSContext(reinterpret_cast<ULView>(ViewHandle));
 }
 
@@ -365,6 +430,8 @@ void JNICALL ULViewUnlockJSContext_Native(JNIEnv*, jclass, jlong ViewHandle)
  */
 jstring JNICALL ULViewEvaluateScript_Native(JNIEnv* Environment, jclass, jlong ViewHandle, jstring ScriptString, jobjectArray Exceptions)
 {
+	ZoneScoped
+
 	const char* ScriptChars = Environment->GetStringUTFChars(ScriptString, nullptr);
 	ULString ULScript = ulCreateString(ScriptChars);
 
@@ -400,6 +467,8 @@ jstring JNICALL ULViewEvaluateScript_Native(JNIEnv* Environment, jclass, jlong V
  */
 jboolean JNICALL ULViewCanGoBack_Native(JNIEnv*, jclass, jlong ViewHandle)
 {
+	ZoneScoped
+
 	return static_cast<jboolean>(ulViewCanGoBack(reinterpret_cast<ULView>(ViewHandle)));
 }
 
@@ -410,6 +479,8 @@ jboolean JNICALL ULViewCanGoBack_Native(JNIEnv*, jclass, jlong ViewHandle)
  */
 jboolean JNICALL ULViewCanGoForward_Native(JNIEnv*, jclass, jlong ViewHandle)
 {
+	ZoneScoped
+
 	return static_cast<jboolean>(ulViewCanGoForward(reinterpret_cast<ULView>(ViewHandle)));
 }
 
@@ -420,6 +491,8 @@ jboolean JNICALL ULViewCanGoForward_Native(JNIEnv*, jclass, jlong ViewHandle)
  */
 void JNICALL ULViewGoBack_Native(JNIEnv*, jclass, jlong ViewHandle)
 {
+	ZoneScoped
+
 	ulViewGoBack(reinterpret_cast<ULView>(ViewHandle));
 }
 
@@ -430,6 +503,8 @@ void JNICALL ULViewGoBack_Native(JNIEnv*, jclass, jlong ViewHandle)
  */
 void JNICALL ULViewGoForward_Native(JNIEnv*, jclass, jlong ViewHandle)
 {
+	ZoneScoped
+
 	ulViewGoForward(reinterpret_cast<ULView>(ViewHandle));
 }
 
@@ -440,6 +515,8 @@ void JNICALL ULViewGoForward_Native(JNIEnv*, jclass, jlong ViewHandle)
  */
 void JNICALL ULViewGoToHistoryOffset_Native(JNIEnv*, jclass, jlong ViewHandle, jint Offset)
 {
+	ZoneScoped
+
 	ulViewGoToHistoryOffset(reinterpret_cast<ULView>(ViewHandle), Offset);
 }
 
@@ -450,6 +527,8 @@ void JNICALL ULViewGoToHistoryOffset_Native(JNIEnv*, jclass, jlong ViewHandle, j
  */
 void JNICALL ULViewReload_Native(JNIEnv*, jclass, jlong ViewHandle)
 {
+	ZoneScoped
+
 	ulViewReload(reinterpret_cast<ULView>(ViewHandle));
 }
 
@@ -460,6 +539,8 @@ void JNICALL ULViewReload_Native(JNIEnv*, jclass, jlong ViewHandle)
  */
 void JNICALL ULViewStop_Native(JNIEnv*, jclass, jlong ViewHandle)
 {
+	ZoneScoped
+
 	ulViewStop(reinterpret_cast<ULView>(ViewHandle));
 }
 
@@ -470,6 +551,8 @@ void JNICALL ULViewStop_Native(JNIEnv*, jclass, jlong ViewHandle)
  */
 void JNICALL ULViewFocus_Native(JNIEnv*, jclass, jlong ViewHandle)
 {
+	ZoneScoped
+
 	ulViewFocus(reinterpret_cast<ULView>(ViewHandle));
 }
 
@@ -480,6 +563,8 @@ void JNICALL ULViewFocus_Native(JNIEnv*, jclass, jlong ViewHandle)
  */
 void JNICALL ULViewUnfocus_Native(JNIEnv*, jclass, jlong ViewHandle)
 {
+	ZoneScoped
+
 	ulViewUnfocus(reinterpret_cast<ULView>(ViewHandle));
 }
 
@@ -490,6 +575,8 @@ void JNICALL ULViewUnfocus_Native(JNIEnv*, jclass, jlong ViewHandle)
  */
 jboolean JNICALL ULViewHasFocus_Native(JNIEnv*, jclass, jlong ViewHandle)
 {
+	ZoneScoped
+
 	return static_cast<jboolean>(ulViewHasFocus(reinterpret_cast<ULView>(ViewHandle)));
 }
 
@@ -500,6 +587,8 @@ jboolean JNICALL ULViewHasFocus_Native(JNIEnv*, jclass, jlong ViewHandle)
  */
 jboolean JNICALL ULViewHasInputFocus_Native(JNIEnv*, jclass, jlong ViewHandle)
 {
+	ZoneScoped
+
 	return static_cast<jboolean>(ulViewHasInputFocus(reinterpret_cast<ULView>(ViewHandle)));
 }
 
@@ -510,6 +599,8 @@ jboolean JNICALL ULViewHasInputFocus_Native(JNIEnv*, jclass, jlong ViewHandle)
  */
 void JNICALL ULViewFireKeyEvent_Native(JNIEnv*, jclass, jlong ViewHandle, jlong KeyEventHandle)
 {
+	ZoneScoped
+
 	const auto View = reinterpret_cast<ULView>(ViewHandle);
 	const auto KeyEvent = reinterpret_cast<ULKeyEvent>(KeyEventHandle);
 
@@ -523,6 +614,8 @@ void JNICALL ULViewFireKeyEvent_Native(JNIEnv*, jclass, jlong ViewHandle, jlong 
  */
 void JNICALL ULViewFireMouseEvent_Native(JNIEnv*, jclass, jlong ViewHandle, jlong MouseEventHandle)
 {
+	ZoneScoped
+
 	const auto View = reinterpret_cast<ULView>(ViewHandle);
 	const auto MouseEvent = reinterpret_cast<ULMouseEvent>(MouseEventHandle);
 
@@ -536,6 +629,8 @@ void JNICALL ULViewFireMouseEvent_Native(JNIEnv*, jclass, jlong ViewHandle, jlon
  */
 void JNICALL ULViewFireScrollEvent_Native(JNIEnv*, jclass, jlong ViewHandle, jlong ScrollEventHandle)
 {
+	ZoneScoped
+
 	const auto View = reinterpret_cast<ULView>(ViewHandle);
 	const auto ScrollEvent = reinterpret_cast<ULScrollEvent>(ScrollEventHandle);
 

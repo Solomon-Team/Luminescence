@@ -1,5 +1,6 @@
 #include "Cache/IntRectCache.h"
 #include "Core/JNIUtilities.h"
+#include "Core/Profiling.h"
 
 #include <Ultralight/CAPI/CAPI_Surface.h>
 
@@ -10,6 +11,8 @@
  */
 jint JNICALL ULSurfaceGetWidth_Native(JNIEnv*, jclass, jlong SurfaceHandle)
 {
+	ZoneScoped
+	
 	const auto Surface = reinterpret_cast<ULSurface>(SurfaceHandle);
 
 	return static_cast<int>(ulSurfaceGetWidth(Surface));
@@ -22,6 +25,8 @@ jint JNICALL ULSurfaceGetWidth_Native(JNIEnv*, jclass, jlong SurfaceHandle)
  */
 jint JNICALL ULSurfaceGetHeight_Native(JNIEnv*, jclass, jlong SurfaceHandle)
 {
+	ZoneScoped
+	
 	const auto Surface = reinterpret_cast<ULSurface>(SurfaceHandle);
 
 	return static_cast<int>(ulSurfaceGetHeight(Surface));
@@ -34,6 +39,8 @@ jint JNICALL ULSurfaceGetHeight_Native(JNIEnv*, jclass, jlong SurfaceHandle)
  */
 jint JNICALL ULSurfaceGetRowBytes_Native(JNIEnv*, jclass, jlong SurfaceHandle)
 {
+	ZoneScoped
+	
 	const auto Surface = reinterpret_cast<ULSurface>(SurfaceHandle);
 
 	return static_cast<int>(ulSurfaceGetRowBytes(Surface));
@@ -46,6 +53,8 @@ jint JNICALL ULSurfaceGetRowBytes_Native(JNIEnv*, jclass, jlong SurfaceHandle)
  */
 jlong JNICALL ULSurfaceGetSize_Native(JNIEnv*, jclass, jlong SurfaceHandle)
 {
+	ZoneScoped
+	
 	const auto Surface = reinterpret_cast<ULSurface>(SurfaceHandle);
 
 	return static_cast<jlong>(ulSurfaceGetSize(Surface));
@@ -58,6 +67,8 @@ jlong JNICALL ULSurfaceGetSize_Native(JNIEnv*, jclass, jlong SurfaceHandle)
  */
 jobject JNICALL ULSurfaceLockPixels_Native(JNIEnv* Environment, jclass, jlong SurfaceHandle)
 {
+	ZoneScoped
+	
 	const auto PixelsBuffer = ulSurfaceLockPixels(reinterpret_cast<ULSurface>(SurfaceHandle));
 	const auto BufferSize = ulSurfaceGetSize(reinterpret_cast<ULSurface>(SurfaceHandle));
 
@@ -71,6 +82,8 @@ jobject JNICALL ULSurfaceLockPixels_Native(JNIEnv* Environment, jclass, jlong Su
  */
 void JNICALL ULSurfaceUnlockPixels_Native(JNIEnv*, jclass, jlong SurfaceHandle)
 {
+	ZoneScoped
+	
 	ulSurfaceUnlockPixels(reinterpret_cast<ULSurface>(SurfaceHandle));
 }
 
@@ -81,6 +94,8 @@ void JNICALL ULSurfaceUnlockPixels_Native(JNIEnv*, jclass, jlong SurfaceHandle)
  */
 void JNICALL ULSurfaceResize_Native(JNIEnv*, jclass, jlong SurfaceHandle, jint Width, jint Height)
 {
+	ZoneScoped
+	
 	const auto Surface = reinterpret_cast<ULSurface>(SurfaceHandle);
 
 	ulSurfaceResize(Surface, static_cast<unsigned int>(Width), static_cast<unsigned int>(Height));
@@ -93,6 +108,8 @@ void JNICALL ULSurfaceResize_Native(JNIEnv*, jclass, jlong SurfaceHandle, jint W
  */
 void JNICALL ULSurfaceSetDirtyBounds_Native(JNIEnv* Environment, jclass, jlong SurfaceHandle, jobject DirtyBounds)
 {
+	ZoneScoped
+	
 	using namespace Luminescence;
 
 	const ULIntRect DirtyBoundsRect = {
@@ -112,6 +129,8 @@ void JNICALL ULSurfaceSetDirtyBounds_Native(JNIEnv* Environment, jclass, jlong S
  */
 jobject JNICALL ULSurfaceGetDirtyBounds_Native(JNIEnv* Environment, jclass, jlong SurfaceHandle)
 {
+	ZoneScoped
+	
 	using namespace Luminescence;
 
 	const auto Surface = reinterpret_cast<ULSurface>(SurfaceHandle);
@@ -127,6 +146,8 @@ jobject JNICALL ULSurfaceGetDirtyBounds_Native(JNIEnv* Environment, jclass, jlon
  */
 void JNICALL ULSurfaceClearDirtyBounds_Native(JNIEnv*, jclass, jlong SurfaceHandle)
 {
+	ZoneScoped
+	
 	ulSurfaceClearDirtyBounds(reinterpret_cast<ULSurface>(SurfaceHandle));
 }
 
@@ -137,6 +158,8 @@ void JNICALL ULSurfaceClearDirtyBounds_Native(JNIEnv*, jclass, jlong SurfaceHand
  */
 jlong JNICALL ULBitmapSurfaceGetBitmap_Native(JNIEnv*, jclass, jlong SurfaceHandle)
 {
+	ZoneScoped
+	
 	const auto BitmapSurface = reinterpret_cast<ULBitmapSurface>(SurfaceHandle);
 
 	return reinterpret_cast<jlong>(ulBitmapSurfaceGetBitmap(BitmapSurface));

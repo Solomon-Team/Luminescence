@@ -6,6 +6,7 @@
 #include "Core/CallbackAdapterRegistry.h"
 #include "Core/JNIUtilities.h"
 #include "Core/ScopedLocalRef.h"
+#include "Core/Profiling.h"
 
 namespace Luminescence
 {
@@ -34,12 +35,14 @@ namespace Luminescence
 
     void CLoggerCallbackAdapter::LogMessage_Trampoline(ULLogLevel LogLevel, ULString Message)
     {
+        ZoneScoped
+        
         const CLoggerCallbackAdapter* Self = m_ActiveCallbackAdapter;
         if (!Self)
             return;
 
-        JNIEnv* Environment = Self->GetJNIEnvironment();
-        if (!Environment)
+        auto [Environment, VirtualMachine, bWasAttached] = Self->AcquireJNIEnvironment();
+        if (!Environment && !Self->m_JavaImplementation)
             return;
         
         const CScopedLocalRef LogLevelEnum(Environment, Environment->FindClass("me/ayydxn/luminescence/platform/ULLogger$Level"));
@@ -49,7 +52,6 @@ namespace Luminescence
         const CScopedLocalRef MessageString(Environment, ULStringToJavaString(Environment, Message));
 
         Environment->CallVoidMethod(Self->m_JavaImplementation, Self->m_LogMessageMethodID, LogLevelObject.Get(), MessageString.Get());
-        
-        CheckException(Environment);
+        Environment->ExceptionCheck();
     }
 }

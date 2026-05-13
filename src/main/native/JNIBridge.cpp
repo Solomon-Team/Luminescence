@@ -54,6 +54,7 @@ extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* VirtualMachine, void*)
 	CALL_JS_CACHE_REGISTER_METHOD(CJSArrayCache::InitializeCache)
 	CALL_JS_CACHE_REGISTER_METHOD(CJSFunctionCache::InitializeCache)
 	CALL_JS_CACHE_REGISTER_METHOD(CJSContextCache::InitializeCache)
+	CALL_JS_CACHE_REGISTER_METHOD(CStringCache::InitializeCache)
 	
 	return JNI_VERSION_10;
 }
@@ -76,4 +77,5 @@ extern "C" JNIEXPORT void JNI_OnUnload(JavaVM* VirtualMachine, void*)
 	Luminescence::JavaScript::CJSArrayCache::ClearCache(Environment);
 	Luminescence::JavaScript::CJSFunctionCache::ClearCache(Environment);
 	Luminescence::JavaScript::CJSContextCache::ClearCache(Environment);
+	Luminescence::JavaScript::CStringCache::ClearCache(Environment);
 }

@@ -3,6 +3,7 @@
 //
 
 #include "Core/JNIUtilities.h"
+#include "Core/Profiling.h"
 
 #include <Ultralight/CAPI/CAPI_Renderer.h>
 
@@ -13,6 +14,8 @@
  */
 jlong JNICALL ULCreateRenderer_Native(JNIEnv*, jclass, jlong ConfigHandle)
 {
+    ZoneScoped
+    
     return reinterpret_cast<jlong>(ulCreateRenderer(reinterpret_cast<ULConfig>(ConfigHandle)));
 }
 
@@ -23,6 +26,8 @@ jlong JNICALL ULCreateRenderer_Native(JNIEnv*, jclass, jlong ConfigHandle)
  */
 void JNICALL ULDestroyRenderer_Native(JNIEnv*, jclass, jlong RendererHandle)
 {
+    ZoneScoped
+    
     ulDestroyRenderer(reinterpret_cast<ULRenderer>(RendererHandle));
 }
 
@@ -33,6 +38,8 @@ void JNICALL ULDestroyRenderer_Native(JNIEnv*, jclass, jlong RendererHandle)
  */
 void JNICALL ULUpdate_Native(JNIEnv*, jclass, jlong RendererHandle)
 {
+    ZoneScoped
+    
     ulUpdate(reinterpret_cast<ULRenderer>(RendererHandle));
 }
 
@@ -43,6 +50,8 @@ void JNICALL ULUpdate_Native(JNIEnv*, jclass, jlong RendererHandle)
  */
 void JNICALL ULRefreshDisplay_Native(JNIEnv*, jclass, jlong RendererHandle, jint DisplayID)
 {
+    ZoneScoped
+    
     ulRefreshDisplay(reinterpret_cast<ULRenderer>(RendererHandle), static_cast<unsigned int>(DisplayID));
 }
 
@@ -53,6 +62,8 @@ void JNICALL ULRefreshDisplay_Native(JNIEnv*, jclass, jlong RendererHandle, jint
  */
 void JNICALL ULRender_Native(JNIEnv*, jclass, jlong RendererHandle)
 {
+    ZoneScoped
+    
     ulRender(reinterpret_cast<ULRenderer>(RendererHandle));
 }
 
@@ -63,6 +74,8 @@ void JNICALL ULRender_Native(JNIEnv*, jclass, jlong RendererHandle)
  */
 void JNICALL ULPurgeMemory_Native(JNIEnv*, jclass, jlong RendererHandle)
 {
+    ZoneScoped
+    
     ulPurgeMemory(reinterpret_cast<ULRenderer>(RendererHandle));
 }
 
@@ -73,6 +86,8 @@ void JNICALL ULPurgeMemory_Native(JNIEnv*, jclass, jlong RendererHandle)
  */
 void JNICALL ULLogMemoryUsage_Native(JNIEnv*, jclass, jlong RendererHandle)
 {
+    ZoneScoped
+    
     ulLogMemoryUsage(reinterpret_cast<ULRenderer>(RendererHandle));
 }
 
@@ -83,6 +98,8 @@ void JNICALL ULLogMemoryUsage_Native(JNIEnv*, jclass, jlong RendererHandle)
  */
 jboolean JNICALL ULStartRemoteInspectorServer_Native(JNIEnv* Environment, jclass, jlong RendererHandle, jstring Address, jint Port)
 {
+    ZoneScoped
+    
     const auto Renderer = reinterpret_cast<ULRenderer>(RendererHandle);
     const auto AddressCString = Environment->GetStringUTFChars(Address, nullptr);
     
@@ -100,6 +117,8 @@ jboolean JNICALL ULStartRemoteInspectorServer_Native(JNIEnv* Environment, jclass
  */
 void JNICALL ULSetGamepadDetails_Native(JNIEnv* Environment, jclass, jlong RendererHandle, jint Index, jstring ID, jint AxisCount, jint ButtonCount)
 {
+    ZoneScoped
+    
     const auto Renderer = reinterpret_cast<ULRenderer>(RendererHandle);
     const auto IDCString = Environment->GetStringUTFChars(ID, nullptr);
     const auto IDString = ulCreateString(IDCString);
@@ -117,6 +136,8 @@ void JNICALL ULSetGamepadDetails_Native(JNIEnv* Environment, jclass, jlong Rende
  */
 void JNICALL ULFireGamepadEvent_Native(JNIEnv*, jclass, jlong RendererHandle, jlong GamepadEventHandle)
 {
+    ZoneScoped
+    
     const auto Renderer = reinterpret_cast<ULRenderer>(RendererHandle);
     
     ulFireGamepadEvent(Renderer, reinterpret_cast<ULGamepadEvent>(GamepadEventHandle));
@@ -129,6 +150,8 @@ void JNICALL ULFireGamepadEvent_Native(JNIEnv*, jclass, jlong RendererHandle, jl
  */
 void JNICALL ULFireGamepadAxisEvent_Native(JNIEnv*, jclass, jlong RendererHandle, jlong GamepadAxisEventHandle)
 {
+    ZoneScoped
+    
     const auto Renderer = reinterpret_cast<ULRenderer>(RendererHandle);
     
     ulFireGamepadAxisEvent(Renderer, reinterpret_cast<ULGamepadAxisEvent>(GamepadAxisEventHandle));
@@ -141,6 +164,8 @@ void JNICALL ULFireGamepadAxisEvent_Native(JNIEnv*, jclass, jlong RendererHandle
  */
 void JNICALL ULFireGamepadButtonEvent_Native(JNIEnv*, jclass, jlong RendererHandle, jlong GamepadButtonEventHandle)
 {
+    ZoneScoped
+    
     const auto Renderer = reinterpret_cast<ULRenderer>(RendererHandle);
     
     ulFireGamepadButtonEvent(Renderer, reinterpret_cast<ULGamepadButtonEvent>(GamepadButtonEventHandle));

@@ -3,6 +3,7 @@
 //
 
 #include "Core/JNIUtilities.h"
+#include "Core/Profiling.h"
 
 #include <Ultralight/CAPI/CAPI_GamepadEvent.h>
 
@@ -13,6 +14,8 @@
  */
 jlong JNICALL ULCreateGamepadEvent_Native(JNIEnv *, jclass, jint Index, jint EventTypeOrdinal)
 {
+    ZoneScoped
+    
     return reinterpret_cast<jlong>(ulCreateGamepadEvent(static_cast<unsigned int>(Index), static_cast<ULGamepadEventType>(EventTypeOrdinal)));
 }
 
@@ -23,6 +26,8 @@ jlong JNICALL ULCreateGamepadEvent_Native(JNIEnv *, jclass, jint Index, jint Eve
  */
 void JNICALL ULDestroyGamepadEvent_Native(JNIEnv*, jclass, jlong GamepadEventHandle)
 {
+    ZoneScoped
+    
     ulDestroyGamepadEvent(reinterpret_cast<ULGamepadEvent>(GamepadEventHandle));
 }
 
@@ -33,6 +38,8 @@ void JNICALL ULDestroyGamepadEvent_Native(JNIEnv*, jclass, jlong GamepadEventHan
  */
 jlong JNICALL ULCreateGamepadAxisEvent_Native(JNIEnv*, jclass, jint Index, jint AxisIndex, jdouble Value)
 {
+    ZoneScoped
+    
     return reinterpret_cast<jlong>(ulCreateGamepadAxisEvent(static_cast<unsigned int>(Index), static_cast<unsigned int>(AxisIndex), Value));
 }
 
@@ -43,6 +50,8 @@ jlong JNICALL ULCreateGamepadAxisEvent_Native(JNIEnv*, jclass, jint Index, jint 
  */
 void JNICALL ULDestroyGamepadAxisEvent_Native(JNIEnv*, jclass, jlong GamepadAxisEventHandle)
 {
+    ZoneScoped
+    
     ulDestroyGamepadAxisEvent(reinterpret_cast<ULGamepadAxisEvent>(GamepadAxisEventHandle));
 }
 
@@ -53,6 +62,8 @@ void JNICALL ULDestroyGamepadAxisEvent_Native(JNIEnv*, jclass, jlong GamepadAxis
  */
 jlong JNICALL ULCreateGamepadButtonEvent_Native(JNIEnv*, jclass, jint Index, jint ButtonIndex, jdouble Value)
 {
+    ZoneScoped
+    
     return reinterpret_cast<jlong>(ulCreateGamepadButtonEvent(static_cast<unsigned int>(Index), static_cast<unsigned int>(ButtonIndex), Value));
 }
 
@@ -63,7 +74,9 @@ jlong JNICALL ULCreateGamepadButtonEvent_Native(JNIEnv*, jclass, jint Index, jin
  */
 void JNICALL ULDestroyGamepadButtonEvent_Native(JNIEnv *, jclass, jlong GamepadButtonEventHandle)
 {
-    ulDestroyGamepadButtonEvent(reinterpret_cast<ULGamepadButtonEvent>(GamepadButtonEventHandle)); 
+    ZoneScoped
+    
+    ulDestroyGamepadButtonEvent(reinterpret_cast<ULGamepadButtonEvent>(GamepadButtonEventHandle));
 }
 
 static constexpr JNINativeMethod GamepadEventMethods[] =

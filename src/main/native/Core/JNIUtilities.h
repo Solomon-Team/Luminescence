@@ -75,16 +75,4 @@ namespace Luminescence
 
         return Result;
     }
-
-    // Describe and clear any pending Java exceptions to prevent them from crashing the JVM during native-to-Java callbacks.
-    inline void CheckException(JNIEnv* Env)
-    {
-        if (Env && Env->ExceptionCheck())
-        {
-            Env->ExceptionDescribe();
-            Env->ExceptionClear();
-
-            throw std::runtime_error("Java exception during JNI callback");
-        }
-    }
 }

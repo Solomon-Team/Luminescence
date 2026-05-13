@@ -3,6 +3,7 @@
 //
 
 #include "Core/JNIUtilities.h"
+#include "Core/Profiling.h"
 
 #include <Ultralight/Defines.h>
 
@@ -13,6 +14,8 @@
  */
 jstring JNICALL ULVersionString_Native(JNIEnv* Env, jclass)
 {
+	ZoneScoped
+	
 	return Env->NewStringUTF(UltralightVersionString());
 }
 
@@ -23,6 +26,8 @@ jstring JNICALL ULVersionString_Native(JNIEnv* Env, jclass)
  */
 jint JNICALL ULVersionMajor_Native(JNIEnv*, jclass)
 {
+	ZoneScoped
+	
 	return static_cast<jint>(UltralightVersionMajor());
 }
 
@@ -33,6 +38,8 @@ jint JNICALL ULVersionMajor_Native(JNIEnv*, jclass)
  */
 jint JNICALL ULVersionMinor_Native(JNIEnv*, jclass)
 {
+	ZoneScoped
+	
 	return static_cast<jint>(UltralightVersionMinor());
 }
 
@@ -43,6 +50,8 @@ jint JNICALL ULVersionMinor_Native(JNIEnv*, jclass)
  */
 jint JNICALL ULVersionPatch_Native(JNIEnv*, jclass)
 {
+	ZoneScoped
+	
 	return static_cast<jint>(UltralightVersionPatch());
 }
 
@@ -53,6 +62,8 @@ jint JNICALL ULVersionPatch_Native(JNIEnv*, jclass)
  */
 jstring JNICALL ULWebKitVersionString_Native(JNIEnv* Env, jclass)
 {
+	ZoneScoped
+	
 	return Env->NewStringUTF(WebKitVersionString());
 }
 
@@ -63,6 +74,8 @@ jstring JNICALL ULWebKitVersionString_Native(JNIEnv* Env, jclass)
  */
 jint JNICALL ULWebKitVersionMajor_Native(JNIEnv*, jclass)
 {
+	ZoneScoped
+	
 	return static_cast<jint>(WebKitVersionMajor());
 }
 
@@ -73,6 +86,8 @@ jint JNICALL ULWebKitVersionMajor_Native(JNIEnv*, jclass)
  */
 jint JNICALL ULWebKitVersionMinor_Native(JNIEnv*, jclass)
 {
+	ZoneScoped
+	
 	return static_cast<jint>(WebKitVersionMinor());
 }
 
@@ -83,6 +98,8 @@ jint JNICALL ULWebKitVersionMinor_Native(JNIEnv*, jclass)
  */
 jint JNICALL ULWebKitVersionTiny_Native(JNIEnv*, jclass)
 {
+	ZoneScoped
+	
 	return static_cast<jint>(WebKitVersionTiny());
 }
 
@@ -93,6 +110,8 @@ jint JNICALL ULWebKitVersionTiny_Native(JNIEnv*, jclass)
  */
 jint JNICALL ULWebKitVersionMicro_Native(JNIEnv*, jclass)
 {
+	ZoneScoped
+	
 	return static_cast<jint>(WebKitVersionMicro());
 }
 
@@ -103,6 +122,8 @@ jint JNICALL ULWebKitVersionMicro_Native(JNIEnv*, jclass)
  */
 jint JNICALL ULWebKitVersionNano_Native(JNIEnv*, jclass)
 {
+	ZoneScoped
+	
 	return static_cast<jint>(WebKitVersionNano());
 }
 

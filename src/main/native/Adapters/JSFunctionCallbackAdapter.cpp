@@ -1,5 +1,6 @@
 ﻿#include "JSFunctionCallbackAdapter.h"
 #include "Cache/JSCCache.h"
+#include "Core/Profiling.h"
 #include "JavaScript/JSCUtilities.h"
 
 using namespace Luminescence;
@@ -10,6 +11,8 @@ namespace
     JSValueRef JSCallback_Trampoline(JSContextRef ContextRef, JSObjectRef Function, JSObjectRef ThisObject, size_t ArgumentCount, const JSValueRef Arguments[],
                                      JSValueRef* Exception)
     {
+        ZoneScoped
+        
         void* PrivateData = JSObjectGetPrivate(Function);
         if (!PrivateData)
             return JSValueMakeUndefined(ContextRef);
@@ -30,11 +33,13 @@ namespace Luminescence
     CJSFunctionCallbackAdapter::CJSFunctionCallbackAdapter(JNIEnv* Environment, jobject CallbackInstance)
         : ICallbackAdapter(Environment, CallbackInstance) {}
 
-    JSValueRef CJSFunctionCallbackAdapter::Invoke(JSContextRef ContextRef, JSObjectRef Function, JSObjectRef ThisObject, size_t ArgumentCount, const JSValueRef* Arguments,
+    JSValueRef CJSFunctionCallbackAdapter::Invoke(JSContextRef ContextRef, JSObjectRef, JSObjectRef ThisObject, size_t ArgumentCount, const JSValueRef* Arguments,
                                                   JSValueRef* Exception) const
     {
-        JNIEnv* Environment = GetJNIEnvironment();
-        if (!Environment)
+        ZoneScoped
+        
+        auto [Environment, VirtualMachine, bWasAttached] = AcquireJNIEnvironment();
+        if (!Environment && !m_JavaImplementation)
             return JSValueMakeUndefined(ContextRef);
     
         const jlong CtxH = reinterpret_cast<jlong>(ContextRef);
